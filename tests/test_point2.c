@@ -52,6 +52,21 @@ int test_point2( int argc, char *argv[] )
     
     point2_set( &p,  1.0, 0.0 );
     g_return_val_if_fail( ! point2_is_in_triangle( &p, &p1, &p2, &p3 ), 1 );
+    
+    point2_set( &p1, -1.0, -1.0 );
+    point2_set( &p2, 1.0, 1.0 );
+
+    point2_interpolate( &p, 0.0, &p1, &p2 );
+    g_return_val_if_fail( p.x == p1.x, 1 );
+    g_return_val_if_fail( p.y == p1.y, 1 );
+    
+    point2_interpolate( &p, 1.0, &p1, &p2 );
+    g_return_val_if_fail( p.x == p2.x, 1 );
+    g_return_val_if_fail( p.y == p2.y, 1 );
+
+    point2_interpolate( &p, 0.5, &p1, &p2 );
+    g_return_val_if_fail( fabs( p.x ) < DBL_EPSILON, 1 );
+    g_return_val_if_fail( fabs( p.y ) < DBL_EPSILON, 1 );
 
     return 0;
 }
