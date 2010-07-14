@@ -28,4 +28,16 @@ void point2_set( Point2 *point, gdouble x, gdouble y );
 gdouble point2_distance( const Point2 *p1, const Point2 *p2 );
 gboolean point2_is_in_triangle( const Point2 *p, const Point2 *p1, const Point2 *p2, const Point2 *p3 );
 
+/** Computes a weighted average of two points. The resulting point will lie on the
+ * segment connecting the two points.
+ *
+ * \param[out] p pointer to point where the result will be stored
+ * \param[in] t weight in the interval \f$[0,1]\f$. If equal to 0, position of
+ * point p will be equal to the position of p1, if t equals to 1, the position of p
+ * will be equal to position of p2.
+ * \param[in] p1 first point
+ * \param[in] p2 second point
+ */
+void point2_interpolate( Point2 *p, gdouble t, const Point2 *p1, const Point2 *p2 );
+
 #endif /* __POINT2_H_INCLUDED__ */

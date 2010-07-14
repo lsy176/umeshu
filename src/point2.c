@@ -50,3 +50,11 @@ gboolean point2_is_in_triangle( const Point2 *p, const Point2 *p1, const Point2 
         return FALSE;
 }
 
+void point2_interpolate( Point2 *p, gdouble t, const Point2 *p1, const Point2 *p2 )
+{
+    g_return_if_fail( 0.0 <= t && t <= 1.0 );
+    p->x = (1.0-t)*p1->x + t*p2->x;
+    p->y = (1.0-t)*p1->y + t*p2->y;
+}
+
+
