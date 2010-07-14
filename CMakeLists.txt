@@ -37,9 +37,18 @@ endif()
 
 set( USE_FAST_GEOMETRIC_TESTS "off" CACHE BOOL "Use fast, but inexact version of geometric tests")
 
-include_directories( ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/src )
+find_package( GLIB2 REQUIRED )
+
+include_directories(
+    ${GLIB_INCLUDE_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    )
+
+set( LIBS ${GLIB_LIBRARY} )
 
 set( umeshu_SOURCES
+    src/point2.c
     src/predicates.c
     predicates_init.h
     )

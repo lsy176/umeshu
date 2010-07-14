@@ -18,17 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-# file( GLOB UnitTests_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.c )
+file( GLOB UnitTests_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test_*.c )
 
-# create_test_sourcelist( Tests TestDriver.c
-    # ${UnitTests_SRCS}
-    # )
+create_test_sourcelist( Tests TestDriver.c
+    ${UnitTests_SRCS}
+    )
 
-# add_executable( TestDriver ${Tests} )
-# target_link_libraries( TestDriver ${LIBS} umeshu )
+add_executable( TestDriver ${Tests} )
+target_link_libraries( TestDriver ${LIBS} umeshu )
 
-# foreach( test ${UnitTests_SRCS} )
-  # get_filename_component( TName ${test} NAME_WE )
-  # add_test( ${TName} TestDriver ${TName} )
-# endforeach()
+foreach( test ${UnitTests_SRCS} )
+    get_filename_component( TName ${test} NAME_WE )
+    add_test( ${TName} TestDriver ${TName} )
+endforeach()
 
