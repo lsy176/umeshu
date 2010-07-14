@@ -50,6 +50,7 @@ set( LIBS ${GLIB_LIBRARY} )
 set( umeshu_SOURCES
     src/point2.c
     src/predicates.c
+    src/node.c
     predicates_init.h
     )
 
