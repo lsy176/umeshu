@@ -61,6 +61,16 @@ void node_print( Node *node );
  */
 gboolean node_is_isolated( const Node *node );
 
+/** Computes if the node lies at a boundary.
+ *
+ * \param node node
+ *
+ * \return If the node lies at a boundary, the function returns a pointer to the
+ * outgoing boundary half-edge. Otherwise (inside a mesh or isolated) it returns
+ * NULL. 
+ */
+HalfEdge * node_is_at_boundary( Node *node );
+
 /** Returns the degree (number of incident edges) of the node.
  *
  * \param node node

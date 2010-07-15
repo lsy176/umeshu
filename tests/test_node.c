@@ -30,6 +30,7 @@ int test_node( int argc, char *argv[] )
     g_return_val_if_fail( NODE_POSITION(n)->x == 1.1, 1 );
     g_return_val_if_fail( NODE_POSITION(n)->y == 2.5, 1 );
     g_return_val_if_fail( node_is_isolated( n ), 1 );
+    g_return_val_if_fail( node_is_at_boundary( n ) == NULL, 1 );
     g_return_val_if_fail( node_degree( n ) == 0, 1 );
 
     node_free( n );

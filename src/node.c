@@ -56,6 +56,26 @@ gboolean node_is_isolated( const Node *node )
 }
 
 
+HalfEdge * node_is_at_boundary( Node *node )
+{
+    g_return_val_if_fail( node != NULL, NULL );
+
+    if ( node_is_isolated( node ) )
+        return NULL;
+
+    HalfEdge *current_he = node->out_halfedge;
+    do
+    {
+        if ( halfedge_is_at_boundary( current_he ) )
+            return current_he;
+        current_he = current_he->pair->next;
+    }
+    while ( current_he != node->out_halfedge );
+
+    return NULL;
+}
+
+
 guint node_degree( Node *node )
 {
     g_return_val_if_fail( node != NULL, 0 );
