@@ -52,6 +52,9 @@ int test_element( int argc, char *argv[] )
     g_return_val_if_fail( fabs( p.x - sqrt( 3.0 )/2.0 ) < SMALL_NUMBER, 1 );
     g_return_val_if_fail( fabs( p.y - 1.0/2.0 ) < SMALL_NUMBER, 1 );
 
+    a1 = triangle_area( &p1, &p2, &p3 );
+    g_return_val_if_fail( fabs( a1 - sqrt( 3.0 )/2.0 ) < SMALL_NUMBER, 1 );
+
     return 0;
 }
 
