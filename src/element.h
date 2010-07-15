@@ -146,6 +146,16 @@ gdouble element_minimum_angle( const Element *element );
  */
 gdouble element_maximum_angle( const Element *element );
 
+/** Computes the area of a triangle given by its vertices
+ *
+ * \param p1 first vertex
+ * \param p2 second vertex
+ * \param p3 third vertex
+ *
+ * \return triangle area
+ */
+gdouble triangle_area( const Point2 *p1, const Point2 *p2, const Point2 *p3 );
+
 /** Computes the area of an element
  *
  * \param element element

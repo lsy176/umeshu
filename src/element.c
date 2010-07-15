@@ -191,14 +191,26 @@ gdouble element_maximum_angle( const Element *element )
 }
 
 
+gdouble triangle_area( const Point2 *p1, const Point2 *p2, const Point2 *p3 )
+{
+    gdouble l1 = point2_distance( p1, p2 );
+    gdouble l2 = point2_distance( p2, p3 );
+    gdouble l3 = point2_distance( p3, p1 );
+    gdouble s = 0.5*( l1 + l2 + l3 );
+    return sqrt( s*( s-l1 )*( s-l2 )*( s-l3 ) );
+}
+
+
 gdouble element_area( const Element *element )
 {
     g_return_val_if_fail( element != NULL, 0.0 );
 
-    gdouble e1_length, e2_length, e3_length;
-    element_edge_lengths( element, &e1_length, &e2_length, &e3_length );
-    gdouble s = 0.5*( e1_length + e2_length + e3_length );
-    return sqrt( s*( s-e1_length )*( s-e2_length )*( s-e3_length ) );
+    HalfEdge *he = element->adjacent_halfedge;
+    Point2 *p1 = NODE_POSITION(he->origin);
+    Point2 *p2 = NODE_POSITION(he->next->origin);
+    Point2 *p3 = NODE_POSITION(he->next->next->origin);
+
+    return triangle_area( p1, p2, p3 );
 }
 
 
@@ -235,11 +247,6 @@ void triangle_circumcenter_coordinates(
         const Point2 *p1, const Point2 *p2, const Point2 *p3,
         Point2 *center )
 {
-    g_return_if_fail( p1 != NULL );
-    g_return_if_fail( p2 != NULL );
-    g_return_if_fail( p3 != NULL );
-    g_return_if_fail( center != NULL );
-
     gdouble Bx = p2->x - p1->x;
     gdouble By = p2->y - p1->y;
     gdouble Cx = p3->x - p1->x;
@@ -252,6 +259,7 @@ void triangle_circumcenter_coordinates(
     center->x = ( Cy*(Bx2 + By2) - By*(Cx2+Cy2) )/D + p1->x;
     center->y = ( Bx*(Cx2 + Cy2) - Cx*(Bx2+By2) )/D + p1->y;
 }
+
 
 void element_circumcenter_coordinates( const Element *el, Point2 *center )
 {
