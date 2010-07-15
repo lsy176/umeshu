@@ -49,6 +49,7 @@ set( LIBS ${GLIB_LIBRARY} )
 
 set( umeshu_SOURCES
     src/edge.c
+    src/element.c
     src/point2.c
     src/predicates.c
     src/node.c
