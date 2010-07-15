@@ -48,6 +48,7 @@ include_directories(
 set( LIBS ${GLIB_LIBRARY} )
 
 set( umeshu_SOURCES
+    src/edge.c
     src/point2.c
     src/predicates.c
     src/node.c
