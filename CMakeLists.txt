@@ -48,6 +48,7 @@ include_directories(
 set( LIBS ${GLIB_LIBRARY} )
 
 set( umeshu_SOURCES
+    src/box2.c
     src/edge.c
     src/element.c
     src/mesh.c
