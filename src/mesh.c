@@ -336,6 +336,24 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
 }
 
 
+Node * mesh_split_element( Mesh *mesh, Element *el, Point2 *p )
+{
+    HalfEdge *he1 = el->adjacent_halfedge;
+    HalfEdge *he2 = he1->next;
+    HalfEdge *he3 = he2->next;
+    Node *n = mesh_add_node( mesh, p->x, p->y );
+    mesh_remove_element( mesh, el );
+    Edge *e1 = mesh_add_edge( mesh, n, he1->origin );
+    Edge *e2 = mesh_add_edge( mesh, n, he2->origin );
+    Edge *e3 = mesh_add_edge( mesh, n, he3->origin );
+    mesh_add_element( mesh, he1, &e2->he[1], &e1->he[0] );
+    mesh_add_element( mesh, he2, &e3->he[1], &e2->he[0] );
+    mesh_add_element( mesh, he3, &e1->he[1], &e3->he[0] );
+
+    return n;
+}
+
+
 static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge *he2 )
 {
     g_return_val_if_fail( he1->pair->origin == he2->pair->origin, NULL );

@@ -21,6 +21,7 @@
 
 #include <edge.h>
 #include <mesh.h>
+#include <point2.h>
 
 int test_mesh( int argc, char *argv[] )
 {
@@ -136,13 +137,25 @@ int test_mesh( int argc, char *argv[] )
     mesh_add_element( mesh, &e1->he[0], &e2->he[0], &e5->he[1] );
     mesh_add_element( mesh, &e5->he[0], &e3->he[0], &e4->he[0] );
     g_return_val_if_fail( edge_is_swappable( e5 ), 1 );
-    mesh_swap_edge( mesh, e5 );
+    Edge *e6 = mesh_swap_edge( mesh, e5 );
     g_return_val_if_fail( mesh->Np == 4, 1 );
     g_return_val_if_fail( mesh->Ne == 5, 1 );
     g_return_val_if_fail( mesh->Nt == 2, 1 );
     g_return_val_if_fail( mesh->nodes != NULL, 1 );
     g_return_val_if_fail( mesh->edges != NULL, 1 );
     g_return_val_if_fail( mesh->elements != NULL, 1 );
+
+    Point2 p;
+    point2_set( &p, 0.25, 0.25 );
+    Node * n5 = mesh_split_element( mesh, e6->he[0].element, &p );
+    g_return_val_if_fail( mesh->Np == 5, 1 );
+    g_return_val_if_fail( mesh->Ne == 8, 1 );
+    g_return_val_if_fail( mesh->Nt == 4, 1 );
+    g_return_val_if_fail( mesh->nodes != NULL, 1 );
+    g_return_val_if_fail( mesh->edges != NULL, 1 );
+    g_return_val_if_fail( mesh->elements != NULL, 1 );
+    g_return_val_if_fail( NODE_POSITION(n5)->x == p.x, 1 );
+    g_return_val_if_fail( NODE_POSITION(n5)->y == p.y, 1 );
     mesh_free( mesh );
 
     return 0;

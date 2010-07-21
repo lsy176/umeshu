@@ -126,5 +126,17 @@ void mesh_remove_element( Mesh *mesh, Element *element );
  */
 Edge * mesh_swap_edge( Mesh *mesh, Edge *edge );
 
+/** Splits an element into three elements by creating three new edges between a
+ * given point inside the element and element's vertices.
+ *
+ * \param mesh mesh containing the element
+ * \param el element to split
+ * \param p point in el
+ *
+ * \return newly created node in the element with position p
+ */
+Node * mesh_split_element( Mesh *mesh, Element *el, Point2 *p );
+
+
 #endif /* __MESH_H_INCLUDED__ */
 
