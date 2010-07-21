@@ -9,7 +9,7 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,6 +22,7 @@
 #include <math.h>
 
 #include <element.h>
+#include <mesh.h>
 #include <point2.h>
 
 int test_element( int argc, char *argv[] )
@@ -54,6 +55,55 @@ int test_element( int argc, char *argv[] )
 
     a1 = triangle_area( &p1, &p2, &p3 );
     g_return_val_if_fail( fabs( a1 - sqrt( 3.0 )/2.0 ) < SMALL_NUMBER, 1 );
+
+
+    Mesh *mesh = mesh_new();
+    Node *n1 = mesh_add_node( mesh, 0.0, 1.0 );
+    Node *n2 = mesh_add_node( mesh, 0.0, 0.0 );
+    Node *n3 = mesh_add_node( mesh, sqrt(3.0), 0.0 );
+    Edge *e1 = mesh_add_edge( mesh, n1, n2 );
+    Edge *e2 = mesh_add_edge( mesh, n2, n3 );
+    Edge *e3 = mesh_add_edge( mesh, n3, n1 );
+    Element *el = mesh_add_element( mesh, &e1->he[0], &e2->he[0], &e3->he[0] );
+
+    gdouble l1, l2, l3;
+    element_edge_lengths( el, &l1, &l2, &l3 );
+    g_return_val_if_fail( fabs( l1 - 1.0) < SMALL_NUMBER, 1);
+    g_return_val_if_fail( fabs( l2 - sqrt(3.0)) < SMALL_NUMBER, 1);
+    g_return_val_if_fail( fabs( l3 - 2.0) < SMALL_NUMBER, 1);
+
+    HalfEdge *he = element_min_edge( el, &l1 );
+    g_return_val_if_fail( he->edge == e1, 1 );
+    g_return_val_if_fail( fabs( l1 - 1.0) < SMALL_NUMBER, 1);
+
+    l1 = element_min_edge_length( el );
+    g_return_val_if_fail( fabs( l1 - 1.0) < SMALL_NUMBER, 1);
+
+    he = element_max_edge( el, &l1 );
+    g_return_val_if_fail( he->edge == e3, 1 );
+    g_return_val_if_fail( fabs( l1 - 2.0) < SMALL_NUMBER, 1);
+
+    l1 = element_max_edge_length( el );
+    g_return_val_if_fail( fabs( l1 - 2.0) < SMALL_NUMBER, 1);
+
+    element_angles( el, &a1, &a2, &a3 );
+    g_return_val_if_fail( fabs( a1 - G_PI/3.0) < SMALL_NUMBER, 1);
+    g_return_val_if_fail( fabs( a2 - G_PI/2.0) < SMALL_NUMBER, 1);
+    g_return_val_if_fail( fabs( a3 - G_PI/6.0) < SMALL_NUMBER, 1);
+
+    a1 = element_maximum_angle( el );
+    g_return_val_if_fail( fabs( a1 - G_PI/2.0) < SMALL_NUMBER, 1);
+
+    a1 = element_minimum_angle( el );
+    g_return_val_if_fail( fabs( a1 - G_PI/6.0) < SMALL_NUMBER, 1);
+
+    point2_set( NODE_POSITION( n3 ), 3.0, 0.0 );
+    a1 = element_area( el );
+    g_return_val_if_fail( fabs( a1 - 3.0/2.0) < SMALL_NUMBER, 1);
+
+    element_circumcenter_coordinates( el, &p );
+    g_return_val_if_fail( fabs( p.x - sqrt( 3.0 )/2.0 ) < SMALL_NUMBER, 1);
+    g_return_val_if_fail( fabs( p.y - 1.0/2.0 ) < SMALL_NUMBER, 1);
 
     return 0;
 }
