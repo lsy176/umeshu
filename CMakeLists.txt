@@ -52,6 +52,7 @@ set( umeshu_SOURCES
     src/edge.c
     src/element.c
     src/mesh.c
+    src/mesh_output.c
     src/point2.c
     src/predicates.c
     src/node.c

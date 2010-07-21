@@ -17,6 +17,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __ROUNDING_H_INCLUDED__
+#define __ROUNDING_H_INCLUDED__
+
 #include <config.h>
 
 #ifdef HAVE_FPU_CONTROL_H
@@ -83,3 +86,5 @@
 #    endif /* not WIN32 */
 #  endif /* not __FreeBSD__ */
 #endif /* not HAVE_FPU_CONTROL_H */
+
+#endif  /* __ROUNDING_H_INCLUDED__ */

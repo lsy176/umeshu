@@ -22,6 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "edge.h"
 #include "mesh_macros.h"
 #include "node.h"
 
