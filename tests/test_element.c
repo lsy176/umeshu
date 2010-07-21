@@ -97,13 +97,13 @@ int test_element( int argc, char *argv[] )
     a1 = element_minimum_angle( el );
     g_return_val_if_fail( fabs( a1 - G_PI/6.0) < SMALL_NUMBER, 1);
 
-    point2_set( NODE_POSITION( n3 ), 3.0, 0.0 );
-    a1 = element_area( el );
-    g_return_val_if_fail( fabs( a1 - 3.0/2.0) < SMALL_NUMBER, 1);
-
     element_circumcenter_coordinates( el, &p );
     g_return_val_if_fail( fabs( p.x - sqrt( 3.0 )/2.0 ) < SMALL_NUMBER, 1);
     g_return_val_if_fail( fabs( p.y - 1.0/2.0 ) < SMALL_NUMBER, 1);
+
+    point2_set( NODE_POSITION( n3 ), 3.0, 0.0 );
+    a1 = element_area( el );
+    g_return_val_if_fail( fabs( a1 - 3.0/2.0) < SMALL_NUMBER, 1);
 
     return 0;
 }

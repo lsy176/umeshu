@@ -315,6 +315,27 @@ static gboolean make_adjacent_half_edges( HalfEdge *in, HalfEdge *out )
 }
 
 
+Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
+{
+    g_return_val_if_fail( mesh != NULL, NULL );
+    g_return_val_if_fail( edge != NULL, NULL );
+
+    HalfEdge *e1 = edge->he[0].next;
+    HalfEdge *e2 = edge->he[0].previous;
+    HalfEdge *e3 = edge->he[1].next;
+    HalfEdge *e4 = edge->he[1].previous;
+    Node *n1 = e2->origin;
+    Node *n2 = e4->origin;
+
+    mesh_remove_edge( mesh, edge );
+    Edge *new_edge = mesh_add_edge( mesh, n1, n2 );
+    mesh_add_element( mesh, e2, e3, &new_edge->he[1] );
+    mesh_add_element( mesh, e1, &new_edge->he[0], e4 );
+
+    return new_edge;
+}
+
+
 static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge *he2 )
 {
     g_return_val_if_fail( he1->pair->origin == he2->pair->origin, NULL );
@@ -334,6 +355,7 @@ static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge
         return NULL;
     }
 }
+
 
 static HalfEdge * node_find_free_incident_half_edge( const Node *n )
 {

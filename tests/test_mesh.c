@@ -19,6 +19,7 @@
  * SOFTWARE.
  */
 
+#include <edge.h>
 #include <mesh.h>
 
 int test_mesh( int argc, char *argv[] )
@@ -120,6 +121,28 @@ int test_mesh( int argc, char *argv[] )
     g_return_val_if_fail( mesh->nodes != NULL, 1 );
     g_return_val_if_fail( mesh->edges != NULL, 1 );
     g_return_val_if_fail( mesh->elements == NULL, 1 );
+    mesh_free( mesh );
+
+    mesh = mesh_new();
+    n1 = mesh_add_node( mesh, 0.0, 0.0 );
+    n2 = mesh_add_node( mesh, 1.0, 0.0 );
+    n3 = mesh_add_node( mesh, 1.0, 1.0 );
+    n4 = mesh_add_node( mesh, 0.0, 1.0 );
+    e1 = mesh_add_edge( mesh, n1, n2 );
+    e2 = mesh_add_edge( mesh, n2, n3 );
+    e3 = mesh_add_edge( mesh, n3, n4 );
+    e4 = mesh_add_edge( mesh, n4, n1 );
+    e5 = mesh_add_edge( mesh, n1, n3 );
+    mesh_add_element( mesh, &e1->he[0], &e2->he[0], &e5->he[1] );
+    mesh_add_element( mesh, &e5->he[0], &e3->he[0], &e4->he[0] );
+    g_return_val_if_fail( edge_is_swappable( e5 ), 1 );
+    mesh_swap_edge( mesh, e5 );
+    g_return_val_if_fail( mesh->Np == 4, 1 );
+    g_return_val_if_fail( mesh->Ne == 5, 1 );
+    g_return_val_if_fail( mesh->Nt == 2, 1 );
+    g_return_val_if_fail( mesh->nodes != NULL, 1 );
+    g_return_val_if_fail( mesh->edges != NULL, 1 );
+    g_return_val_if_fail( mesh->elements != NULL, 1 );
     mesh_free( mesh );
 
     return 0;

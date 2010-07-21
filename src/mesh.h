@@ -111,5 +111,20 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *e1, HalfEdge *e2, HalfEdge *e3
  */
 void mesh_remove_element( Mesh *mesh, Element *element );
 
+/** Swaps an edge in the mesh to the other diagonal of the quadrilateral formed
+ * by the two adjacent triangles.
+ *
+ * \attention This function does not perform any checking. It is assumed that the
+ * checks (e.g., a call to edge_is_swappable) were done by the calling function.
+ * 
+ * \param mesh mesh to which the edge belongs
+ * \param edge edge to be swapped
+ *
+ * \return pointer to the swapped edge
+ * 
+ * \sa edge_is_swappable
+ */
+Edge * mesh_swap_edge( Mesh *mesh, Edge *edge );
+
 #endif /* __MESH_H_INCLUDED__ */
 
