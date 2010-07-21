@@ -54,6 +54,7 @@ set( umeshu_SOURCES
     src/mesh.c
     src/mesh_output.c
     src/point2.c
+    src/polygon.c
     src/predicates.c
     src/node.c
     predicates_init.h
