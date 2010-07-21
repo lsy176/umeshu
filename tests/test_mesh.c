@@ -156,6 +156,21 @@ int test_mesh( int argc, char *argv[] )
     g_return_val_if_fail( mesh->elements != NULL, 1 );
     g_return_val_if_fail( NODE_POSITION(n5)->x == p.x, 1 );
     g_return_val_if_fail( NODE_POSITION(n5)->y == p.y, 1 );
+
+    Box2 box;
+    mesh_get_bounding_box( mesh, &box );
+    g_return_val_if_fail( box.min[0] == 0.0, 1 );
+    g_return_val_if_fail( box.min[1] == 0.0, 1 );
+    g_return_val_if_fail( box.max[0] == 1.0, 1 );
+    g_return_val_if_fail( box.max[1] == 1.0, 1 );
+    mesh_add_node( mesh, 2.0, 3.0 );
+    mesh_get_bounding_box( mesh, &box );
+    g_return_val_if_fail( box.min[0] == 0.0, 1 );
+    g_return_val_if_fail( box.min[1] == 0.0, 1 );
+    box2_print( &box );
+    g_return_val_if_fail( box.max[0] == 2.0, 1 );
+    g_return_val_if_fail( box.max[1] == 3.0, 1 );
+
     mesh_free( mesh );
 
     return 0;

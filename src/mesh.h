@@ -28,6 +28,7 @@
  * \author Vladimir Chalupecky
  */
 
+#include "box2.h"
 #include "mesh_types.h"
 
 /** Allocates an empty mesh
@@ -135,7 +136,14 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge );
  *
  * \return newly created node in the element with position p
  */
-Node * mesh_split_element( Mesh *mesh, Element *el, Point2 *p );
+Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p );
+
+/** Gets the axis-aligned bounding box of the mesh.
+ *
+ * \param[in] mesh mesh
+ * \param[out] box bounding box
+ */
+void mesh_get_bounding_box( const Mesh *mesh, Box2 *box );
 
 
 #endif /* __MESH_H_INCLUDED__ */

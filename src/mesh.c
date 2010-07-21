@@ -82,13 +82,8 @@ void mesh_remove_node( Mesh *mesh, Node *node )
         {
             current = next;
             next = next->pair->next;
-            // if the edge is a loop edge, then do not delete twice
-            // we do not allow loop edges, but anyway ...
             if ( next->edge == current->edge )
-            {
-                g_warning( "edge %p is a loop edge", current->edge );
                 next = next->pair->next;
-            }
             mesh_remove_edge( mesh, current->edge );
         }
         while ( current != next );
@@ -336,7 +331,7 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
 }
 
 
-Node * mesh_split_element( Mesh *mesh, Element *el, Point2 *p )
+Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
 {
     HalfEdge *he1 = el->adjacent_halfedge;
     HalfEdge *he2 = he1->next;
@@ -351,6 +346,32 @@ Node * mesh_split_element( Mesh *mesh, Element *el, Point2 *p )
     mesh_add_element( mesh, he3, &e1->he[1], &e3->he[0] );
 
     return n;
+}
+
+
+void mesh_get_bounding_box( const Mesh *mesh, Box2 *box )
+{
+    g_return_if_fail( mesh != NULL );
+    g_return_if_fail( mesh->nodes != NULL );
+    g_return_if_fail( box != NULL );
+
+    GList *nodes_iter = mesh->nodes;
+    Node *node = NODE(nodes_iter->data);
+    gdouble x = NODE_POSITION(node)->x;
+    gdouble y = NODE_POSITION(node)->y;
+    box->min[0] = box->max[0] = x;
+    box->min[1] = box->max[1] = y;
+
+    for ( nodes_iter = g_list_next( nodes_iter ); nodes_iter != NULL; nodes_iter = g_list_next( nodes_iter ) )
+    {
+        node = NODE(nodes_iter->data);
+        x = NODE_POSITION(node)->x;
+        y = NODE_POSITION(node)->y;
+        if ( x < box->min[0] ) box->min[0] = x;
+        if ( y < box->min[1] ) box->min[1] = y;
+        if ( x > box->max[0] ) box->max[0] = x;
+        if ( y > box->max[1] ) box->max[1] = y;
+    }
 }
 
 
