@@ -23,7 +23,7 @@
 #define __MESH_H_INCLUDED__ 
 
 /** \file
- * \brief Routinges for mesh creation and manipulation
+ * \brief Routines for mesh creation and manipulation
  *
  * \author Vladimir Chalupecky
  */

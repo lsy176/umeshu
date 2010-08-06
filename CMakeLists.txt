@@ -52,6 +52,7 @@ set( umeshu_SOURCES
     src/edge.c
     src/element.c
     src/mesh.c
+    src/mesh_delaunay.c
     src/mesh_output.c
     src/point2.c
     src/polygon.c
