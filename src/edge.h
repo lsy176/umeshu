@@ -99,7 +99,7 @@ gboolean edge_is_at_boundary( const Edge *edge );
  *
  * \return TRUE if the edge can be swapped, otherwise FALSE
  */
-gboolean edge_is_swappable( Edge *edge );
+gboolean edge_is_swappable( const Edge *edge );
 
 /** Tests if the edge is Delaunay, i.e., if it satisfies the local Delaunay
  * condition.
@@ -111,6 +111,16 @@ gboolean edge_is_swappable( Edge *edge );
  *
  * \return TRUE if the edge is Delaunay, otherwise FALSE
  */
-gboolean edge_is_delaunay( Edge *edge );
+gboolean edge_is_delaunay( const Edge *edge );
+
+/** Check half-edge for encroachment by a point. Main use of this routine is in
+ * the Ruppert's algorithm.
+ *
+ * \param he half-edge to be checked
+ * \param p point
+ * 
+ * \return TRUE if p encroaches upon he, otherwise FALSE
+ */
+gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 *p );
 
 #endif /* __EDGE_H_INCLUDED__ */

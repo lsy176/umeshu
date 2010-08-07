@@ -104,7 +104,7 @@ gboolean edge_is_at_boundary( const Edge *edge )
  *     \ | /
  *       n3
  */
-gboolean edge_is_swappable( Edge *edge )
+gboolean edge_is_swappable( const Edge *edge )
 {
     g_return_val_if_fail( edge != NULL, FALSE );
 
@@ -143,7 +143,7 @@ gboolean edge_is_swappable( Edge *edge )
  *     \ | /
  *       n3
  */
-gboolean edge_is_delaunay( Edge *edge )
+gboolean edge_is_delaunay( const Edge *edge )
 {
     g_return_val_if_fail( edge != NULL, FALSE );
 
@@ -166,6 +166,15 @@ gboolean edge_is_delaunay( Edge *edge )
         return FALSE;
 
     return TRUE;
+}
+
+
+gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 *p )
+{
+    Point2 *u = NODE_POSITION(he->origin);
+    Point2 *v = NODE_POSITION(he->pair->origin);
+    gdouble dot_p = (u->x - p->x)*(v->x - p->x) + (u->y - p->y)*(v->y - p->y);
+    return dot_p < 0.0;
 }
 
 
