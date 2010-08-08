@@ -177,4 +177,18 @@ gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 
     return dot_p < 0.0;
 }
 
+gboolean halfedge_point_is_in_left_half_plane( const HalfEdge *he, const Point2 *p )
+{
+    Point2 *p1 = NODE_POSITION(he->origin);
+    Point2 *p2 = NODE_POSITION(he->pair->origin);
+    double p_[3][2];
+    p_[0][0] = p1->x;
+    p_[0][1] = p1->y;
+    p_[1][0] = p2->x;
+    p_[1][1] = p2->y;
+    p_[2][0] = p->x;
+    p_[2][1] = p->y;
+
+    return orient2d_test( p_[0], p_[1], p_[2] ) > 0.0;
+}
 

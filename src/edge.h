@@ -113,7 +113,7 @@ gboolean edge_is_swappable( const Edge *edge );
  */
 gboolean edge_is_delaunay( const Edge *edge );
 
-/** Check half-edge for encroachment by a point. Main use of this routine is in
+/** Checks half-edge for encroachment by a point. Main use of this routine is in
  * the Ruppert's algorithm.
  *
  * \param he half-edge to be checked
@@ -122,5 +122,15 @@ gboolean edge_is_delaunay( const Edge *edge );
  * \return TRUE if p encroaches upon he, otherwise FALSE
  */
 gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 *p );
+
+/** Checks if a point lies in the left half-plane of a half-edge (direction
+ * taken in the sense from the origin to the destination node).
+ *
+ * \param he half-edge
+ * \param p point
+ *
+ * \return TRUE if point lies in left half-plane, otherwise FALSE
+ */
+gboolean halfedge_point_is_in_left_half_plane( const HalfEdge *he, const Point2 *p );
 
 #endif /* __EDGE_H_INCLUDED__ */

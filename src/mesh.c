@@ -427,6 +427,31 @@ HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh )
 }
 
 
+Element * mesh_locate_element( const Point2 *p, const Element *initial_element )
+{
+    HalfEdge *he_iter = initial_element->adjacent_halfedge;
+    HalfEdge *he_start = he_iter;
+
+    while ( TRUE )
+    {
+        if ( halfedge_point_is_in_left_half_plane( he_iter, p ) )
+        {
+            he_iter = he_iter->next;
+            if ( he_iter == he_start )
+                return he_iter->element;
+        }
+        else
+        {
+            he_iter = he_iter->pair;
+            if ( halfedge_is_at_boundary( he_iter ) )
+                return NULL;
+            he_start = he_iter;
+            he_iter = he_iter->next;
+        }
+    }
+}
+
+
 void mesh_get_bounding_box( const Mesh *mesh, Box2 *box )
 {
     g_return_if_fail( mesh != NULL );

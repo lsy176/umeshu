@@ -179,5 +179,18 @@ void mesh_get_bounding_box( const Mesh *mesh, Box2 *box );
  */
 HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh );
 
+/** Locates an element in a mesh that contains a given point. This function
+ * implements a simple mesh-walking algorithm. Works reliably only for convex
+ * domains.
+ *
+ * \param[in] p point
+ * \param[in] initial_element element from which the search starts
+ *
+ * \return element containing point p, NULL if the algorithm would walk out of
+ * the mesh to reach the point (either the point lies outside the mesh or the
+ * mesh domain is not convex)
+ */
+Element * mesh_locate_element( const Point2 *p, const Element *initial_element );
+
 #endif /* __MESH_H_INCLUDED__ */
 

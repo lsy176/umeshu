@@ -54,6 +54,7 @@ set( umeshu_SOURCES
     src/mesh.c
     src/mesh_delaunay.c
     src/mesh_output.c
+    src/mesh_refine.c
     src/point2.c
     src/polygon.c
     src/polygon_triangulate.c
