@@ -140,7 +140,7 @@ int test_mesh( int argc, char *argv[] )
     mesh_add_element( mesh, &e1->he[0], &e2->he[0], &e5->he[1] );
     mesh_add_element( mesh, &e5->he[0], &e3->he[0], &e4->he[0] );
     g_return_val_if_fail( edge_is_swappable( e5 ), 1 );
-    mesh_swap_edge( mesh, e5 );
+    e5 = mesh_swap_edge( mesh, e5 );
     g_return_val_if_fail( mesh->Np == 4, 1 );
     g_return_val_if_fail( mesh->Ne == 5, 1 );
     g_return_val_if_fail( mesh->Nt == 2, 1 );
@@ -159,6 +159,24 @@ int test_mesh( int argc, char *argv[] )
     g_return_val_if_fail( mesh->elements != NULL, 1 );
     g_return_val_if_fail( NODE_POSITION(n5)->x == p.x, 1 );
     g_return_val_if_fail( NODE_POSITION(n5)->y == p.y, 1 );
+
+    mesh_save_to_eps( "test_mesh_2_before_edge_split.eps", mesh );
+    mesh_split_edge( mesh, e5, NULL, NULL );
+    g_return_val_if_fail( mesh->Np == 6, 1 );
+    g_return_val_if_fail( mesh->Ne == 11, 1 );
+    g_return_val_if_fail( mesh->Nt == 6, 1 );
+    g_return_val_if_fail( mesh->nodes != NULL, 1 );
+    g_return_val_if_fail( mesh->edges != NULL, 1 );
+    g_return_val_if_fail( mesh->elements != NULL, 1 );
+    mesh_save_to_eps( "test_mesh_2_after_edge_split.eps", mesh );
+    mesh_split_edge( mesh, e2, NULL, NULL );
+    g_return_val_if_fail( mesh->Np == 7, 1 );
+    g_return_val_if_fail( mesh->Ne == 13, 1 );
+    g_return_val_if_fail( mesh->Nt == 7, 1 );
+    g_return_val_if_fail( mesh->nodes != NULL, 1 );
+    g_return_val_if_fail( mesh->edges != NULL, 1 );
+    g_return_val_if_fail( mesh->elements != NULL, 1 );
+    mesh_save_to_eps( "test_mesh_2_after_bedge_split.eps", mesh );
 
     Box2 box;
     mesh_get_bounding_box( mesh, &box );

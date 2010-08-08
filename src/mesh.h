@@ -138,6 +138,15 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge );
  */
 Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p );
 
+/** Splits an edge into two subedges by creating a new node at its middle point.
+ *
+ * \param[in] mesh mesh containing the edge
+ * \param[in] edge edge to split
+ * \param[out] subedge1 first subedge, can be NULL
+ * \param[out] subedge2 second subedge, can be NULL
+ */
+void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 );
+
 /** Gets the axis-aligned bounding box of the mesh.
  *
  * \param[in] mesh mesh

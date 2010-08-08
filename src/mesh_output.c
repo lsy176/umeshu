@@ -71,7 +71,6 @@ void mesh_save_to_eps( const gchar *filename, const Mesh *mesh )
     for ( edges_iter = mesh->edges; edges_iter != NULL; edges_iter = g_list_next( edges_iter ) )
     {
         const Edge *edge = EDGE(edges_iter->data);
-        edge_print( edge );
         const Point2 *p1 = NODE_POSITION(edge->he[0].origin);
         const Point2 *p2 = NODE_POSITION(edge->he[1].origin);
         fprintf( eps_file, "%f %f moveto\n", fig_width*(p1->x - box.min[0])/width + FIG_MARGIN, fig_height*(p1->y - box.min[1])/height + FIG_MARGIN );

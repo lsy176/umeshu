@@ -80,7 +80,7 @@ gdouble edge_length( const Edge *edge );
 gboolean halfedge_is_at_boundary( const HalfEdge *he );
 
 /** Indicates if the given edge is at the boundary (i.e., one of its half-edges
- * is at the boundary
+ * is at the boundary).
  *
  * \param edge edge
  *

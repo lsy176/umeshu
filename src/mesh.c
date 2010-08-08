@@ -23,6 +23,7 @@
 #include "element.h"
 #include "mesh.h"
 #include "node.h"
+#include "point2.h"
 
 static gboolean make_adjacent_half_edges( HalfEdge *in, HalfEdge *out );
 static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge *he2 );
@@ -169,6 +170,7 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
 
 void mesh_remove_edge( Mesh *mesh, Edge *edge )
 {
+    g_return_if_fail( mesh != NULL );
     g_return_if_fail( edge != NULL );
 
     HalfEdge *he1 = &edge->he[0];
@@ -333,6 +335,10 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
 
 Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
 {
+    g_return_val_if_fail( mesh != NULL, NULL );
+    g_return_val_if_fail( el != NULL, NULL );
+    g_return_val_if_fail( p != NULL, NULL );
+    
     HalfEdge *he1 = el->adjacent_halfedge;
     HalfEdge *he2 = he1->next;
     HalfEdge *he3 = he2->next;
@@ -346,6 +352,58 @@ Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
     mesh_add_element( mesh, he3, &e1->he[1], &e3->he[0] );
 
     return n;
+}
+
+
+void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 )
+{
+    g_return_if_fail( mesh != NULL );
+    g_return_if_fail( edge != NULL );
+
+    HalfEdge *he0 = &edge->he[0];
+    HalfEdge *he0n = NULL;
+    HalfEdge *he0p = NULL;
+    if ( ! halfedge_is_at_boundary( he0 ) )
+    {
+        he0n = he0->next;
+        he0p = he0->previous;
+    }
+
+    HalfEdge *he1 = &edge->he[1];
+    HalfEdge *he1n = NULL;
+    HalfEdge *he1p = NULL;
+    if ( ! halfedge_is_at_boundary( he1 ) )
+    {
+        he1n = he1->next;
+        he1p = he1->previous;
+    }
+
+    Node *n0 = he0->origin;
+    Node *n1 = he1->origin;
+
+    mesh_remove_edge( mesh, edge );
+    Point2 p = point2_interpolate( NODE_POSITION(n0), NODE_POSITION(n1), 0.5 );
+    Node *n2 = mesh_add_node( mesh, p.x, p.y );
+    Edge *e1 = mesh_add_edge( mesh, n0, n2 );
+    Edge *e2 = mesh_add_edge( mesh, n1, n2 );
+    if ( he0p != NULL )
+    {
+        Edge *e3 = mesh_add_edge( mesh, n2, he0p->origin );
+        mesh_add_element( mesh, he0p, &e1->he[0], &e3->he[0] );
+        mesh_add_element( mesh, he0n, &e3->he[1], &e2->he[1] );
+    }
+
+    if ( he1p != NULL )
+    {
+        Edge *e4 = mesh_add_edge( mesh, n2, he1p->origin );
+        mesh_add_element( mesh, he1p, &e2->he[0], &e4->he[0] );
+        mesh_add_element( mesh, he1n, &e4->he[1], &e1->he[1] );
+    }
+
+    if ( subedge1 != NULL )
+        subedge1 = e1;
+    if ( subedge2 != NULL )
+        subedge2 = e2;
 }
 
 
