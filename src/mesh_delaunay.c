@@ -103,5 +103,41 @@ void mesh_make_cdt_by_edge_flipping( Mesh *mesh )
 }
 
 
+void mesh_split_encroached_boundary_edges( Mesh *mesh )
+{
+    GSList *encroached_half_edges = NULL;
+
+    HalfEdge *start_he = mesh_get_boundary_halfedge( mesh );
+    HalfEdge *boundary_iter = start_he;
+    do
+    {
+        HalfEdge *he = boundary_iter->pair;
+        if ( halfedge_is_encroached_upon_by_point( he, NODE_POSITION(he->previous->origin) ) )
+            encroached_half_edges = g_slist_prepend( encroached_half_edges, he );
+        boundary_iter = boundary_iter->next;
+    }
+    while ( boundary_iter != start_he );
+
+    while ( encroached_half_edges != NULL )
+    {
+        HalfEdge *he = HALFEDGE( encroached_half_edges->data );
+        encroached_half_edges = g_slist_delete_link( encroached_half_edges, encroached_half_edges );
+
+        HalfEdge *hen = he->next;
+        HalfEdge *hep = he->previous;
+
+        mesh_split_edge( mesh, he->edge, NULL, NULL );
+
+        recursive_swap_delaunay( mesh, hen );
+        recursive_swap_delaunay( mesh, hep );
+
+        if ( halfedge_is_encroached_upon_by_point( hen->previous, NODE_POSITION(hen->pair->origin) ) )
+            encroached_half_edges = g_slist_prepend( encroached_half_edges, hen->previous );
+        if ( halfedge_is_encroached_upon_by_point( hep->next, NODE_POSITION(hep->origin) ) )
+            encroached_half_edges = g_slist_prepend( encroached_half_edges, hep->next );
+    }
+}
+
+
 
 

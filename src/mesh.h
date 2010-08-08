@@ -139,13 +139,14 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge );
 Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p );
 
 /** Splits an edge into two subedges by creating a new node at its middle point.
+ * Can handle both internal as well as boundary edges.
  *
  * \param[in] mesh mesh containing the edge
  * \param[in] edge edge to split
  * \param[out] subedge1 first subedge, can be NULL
  * \param[out] subedge2 second subedge, can be NULL
  */
-void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 );
+void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 );
 
 /** Gets the axis-aligned bounding box of the mesh.
  *
@@ -154,6 +155,29 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 );
  */
 void mesh_get_bounding_box( const Mesh *mesh, Box2 *box );
 
+/** Finds an edge that lies at the boundary of the mesh.
+ *
+ * \attention The routine just iterates over the list of edges and returns the
+ * first boundary edge it finds. This is not the best approach when we have to
+ * call this function often. Also, if and when holes are permitted in the
+ * domain, we will get access to only one boundary using this function.
+ *
+ * \param mesh mesh
+ * 
+ * \return pointer to a half-edge that lies at the "outer" side of a boundary
+ * edge. In this way, we can iterate over the boundary edges using next
+ * (clock-wise) and previous (counterclock-wise) pointers.
+ *
+ * \todo To avoid the need of iterating over all edges every time we need a
+ * boundary edge, we could store a pointer to a boundary edge in the mesh
+ * structrure and update it every time we modify the mesh. However, it is not
+ * clear if this is advantegeous: we modify the mesh all the time but how often
+ * do we need to search for a boundary edge?
+ *
+ * \todo If and when we allow mesh generation for domains with holes, we would
+ * have to return a list of boundary half-edges
+ */
+HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh );
 
 #endif /* __MESH_H_INCLUDED__ */
 

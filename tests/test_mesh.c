@@ -194,14 +194,6 @@ int test_mesh( int argc, char *argv[] )
 
     mesh_free( mesh );
 
-    Polygon *poly = polygon_create_island();
-    mesh = mesh_triangulate_polygon( poly );
-    mesh_save_to_eps( "test_mesh_1_after_triangulation.eps", mesh );
-    mesh_make_cdt_by_edge_flipping( mesh );
-    mesh_save_to_eps( "test_mesh_1_after_make_cdt.eps", mesh );
-    polygon_free( poly );
-    mesh_free( mesh );
-
     return 0;
 }
 

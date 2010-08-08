@@ -53,6 +53,15 @@ void recursive_swap_delaunay( Mesh *mesh, HalfEdge *he );
  */
 void mesh_make_cdt_by_edge_flipping( Mesh *mesh );
 
+/** Splits boundary edges of a mesh that are encroached upon. This routine is
+ * mainly used in the initialization step of Ruppert's algorithm.
+ *
+ * \attention The mesh has to be CDT (obtained, e.g., from a call to
+ * mesh_make_cdt_by_edge_flipping).
+ *
+ * \param mesh mesh
+ */
+void mesh_split_encroached_boundary_edges( Mesh *mesh );
 
 #endif /* __MESH_DELAUNAY_H_INCLUDED__ */
 

@@ -355,7 +355,7 @@ Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
 }
 
 
-void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 )
+void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( edge != NULL );
@@ -401,9 +401,29 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge *subedge1, Edge *subedge2 )
     }
 
     if ( subedge1 != NULL )
-        subedge1 = e1;
+        *subedge1 = e1;
     if ( subedge2 != NULL )
-        subedge2 = e2;
+        *subedge2 = e2;
+}
+
+
+HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh )
+{
+    g_return_val_if_fail( mesh != NULL, NULL );
+
+    GList *edges_iter;
+    for ( edges_iter = mesh->edges; edges_iter != NULL; edges_iter = g_list_next( edges_iter ) )
+    {
+        Edge *edge = EDGE(edges_iter->data);
+
+        if ( halfedge_is_at_boundary( &edge->he[0] ) )
+            return &edge->he[0];
+        else if ( halfedge_is_at_boundary( &edge->he[1] ) )
+            return &edge->he[1];
+    }
+
+    /* our mesh should always have a boundary, we do not create solids */
+    g_return_val_if_reached( NULL );
 }
 
 
