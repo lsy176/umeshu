@@ -19,7 +19,10 @@
  * SOFTWARE.
  */
 
+#include <math.h>
+
 #include "edge.h"
+#include "mesh_macros.h"
 #include "point2.h"
 #include "predicates.h"
 
@@ -177,6 +180,7 @@ gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 
     return dot_p < 0.0;
 }
 
+
 gboolean halfedge_point_is_in_left_half_plane( const HalfEdge *he, const Point2 *p )
 {
     Point2 *p1 = NODE_POSITION(he->origin);
@@ -190,5 +194,28 @@ gboolean halfedge_point_is_in_left_half_plane( const HalfEdge *he, const Point2 
     p_[2][1] = p->y;
 
     return orient2d_test( p_[0], p_[1], p_[2] ) > 0.0;
+}
+
+
+void halfedge_ideal_triangle_point( const HalfEdge *he, double h , Point2 *p)
+{
+    gdouble height = h*SQRT3/2.0;
+    /* get end points of the edge */
+    Point2 *p1 = NODE_POSITION(he->origin);
+    Point2 *p2 = NODE_POSITION(he->pair->origin);
+    /* compute direction vector of the edge in the direction of the half-edge */
+    gdouble v[] = { p2->x - p1->x, p2->y - p1->y };
+    /* compute normal vector to the edge pointing into the triangle */
+    gdouble n[] = { -v[1], v[0] };
+    /* compute length of the normal, i.e., length of the edge. We have function
+     * for it but it repeats operations that we have already done in this
+     * function (fetching of end points, computing the direction vector, ...). */
+    gdouble n_length = sqrt( n[0]*n[0] + n[1]*n[1] );
+    /* compute middle point of the edge */
+    Point2 mp = point2_interpolate( p1, p2, 0.5 );
+    /* the resulting point lies at distance height from the middle point in the
+     * direction of the normal */
+    p->x = mp.x + height * n[0] / n_length;
+    p->y = mp.x + height * n[1] / n_length;
 }
 

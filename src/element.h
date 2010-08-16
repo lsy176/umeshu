@@ -103,7 +103,8 @@ HalfEdge * element_max_edge( const Element *el, gdouble *length );
  */
 gdouble element_max_edge_length( const Element *element );
 
-/** Computes inner angles in a triangle that is given by its vertices.
+/** Computes inner angles in a triangle that is given by its vertices. All
+ * returned angles are in radians.
  *
  * \param[in] p1 first triangle vertex
  * \param[in] p2 second triangle vertex

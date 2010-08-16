@@ -38,6 +38,9 @@
 /* default figure margin is 1mm */
 #define FIG_MARGIN 0.1*CM
 
+/* default line width is 0.1mm */
+#define LINE_WIDTH 0.01*CM
+
 void mesh_save_to_eps( const gchar *filename, const Mesh *mesh )
 {
     FILE *eps_file = fopen( filename, "w" );
@@ -76,7 +79,7 @@ void mesh_save_to_eps( const gchar *filename, const Mesh *mesh )
         fprintf( eps_file, "%f %f moveto\n", fig_width*(p1->x - box.min[0])/width + FIG_MARGIN, fig_height*(p1->y - box.min[1])/height + FIG_MARGIN );
         fprintf( eps_file, "%f %f lineto\n", fig_width*(p2->x - box.min[0])/width + FIG_MARGIN, fig_height*(p2->y - box.min[1])/height + FIG_MARGIN );
     }
-    fprintf( eps_file, "%f setlinewidth\n", 0.05*CM );
+    fprintf( eps_file, "%f setlinewidth\n", LINE_WIDTH );
     fprintf( eps_file, "stroke\n" );
     fprintf( eps_file, "%%%%EOF\n" );
 

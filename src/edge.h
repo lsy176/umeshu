@@ -133,4 +133,15 @@ gboolean halfedge_is_encroached_upon_by_point( const HalfEdge *he, const Point2 
  */
 gboolean halfedge_point_is_in_left_half_plane( const HalfEdge *he, const Point2 *p );
 
+/** Finds the ideal position of the third triangle's vertex given an existing
+ * (half-)edge and desired edge length.
+ *
+ * \param[in] he half-edge lying on an existing triangle edge. The triangle lies
+ * to the left in the direction of the half-edge.
+ * \param[in] h desired edge length
+ * \param[out] p position of the ideal vertex
+ */
+void halfedge_ideal_triangle_point( const HalfEdge *he, double h , Point2 *p);
+
+
 #endif /* __EDGE_H_INCLUDED__ */

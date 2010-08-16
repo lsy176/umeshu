@@ -36,6 +36,8 @@
 /** Converts radians to degrees */
 #define DEGREES(radians) (radians*180.0/G_PI)
 
+#define SQRT3 1.7320508075688772
+
 /** Scalar product of two 2D vectors represented as pointers to doubles
  *
  * \param v1 first vector
