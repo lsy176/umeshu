@@ -192,5 +192,16 @@ HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh );
  */
 Element * mesh_locate_element( const Point2 *p, const Element *initial_element );
 
+/** Removes an edge from the mesh and merges its end nodes into
+ * one.
+ *
+ * \param mesh mesh to which the edge belongs
+ * \param edge edge to be collapsed
+ *
+ * \return TRUE if the edge was actually collapsed, FALSE if one of the end
+ * nodes lies at a boundary
+ */
+gboolean mesh_collapse_edge( Mesh *mesh, Edge *edge );
+
 #endif /* __MESH_H_INCLUDED__ */
 

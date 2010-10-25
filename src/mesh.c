@@ -478,6 +478,69 @@ void mesh_get_bounding_box( const Mesh *mesh, Box2 *box )
 }
 
 
+gboolean mesh_collapse_edge( Mesh *mesh, Edge *edge )
+{
+    if ( node_is_at_boundary( edge->he[0].origin ) || node_is_at_boundary( edge->he[1].origin) )
+        return FALSE;
+
+    HalfEdge *he1 = edge->he[0].next;
+    HalfEdge *he2 = edge->he[0].previous;
+    if ( he1->next != he2 || he2->previous != he1 )
+        g_warning( "mesh_collapse_edge: wrong connectivity between he1 and he2" );
+    HalfEdge *he3 = edge->he[1].next;
+    HalfEdge *he4 = edge->he[1].previous;
+    if ( he3->next != he4 || he4->previous != he3 )
+        g_warning( "mesh_collapse_edge: wrong connectivity between he3 and he4" );
+    HalfEdge *he5 = he2->pair->previous;
+    HalfEdge *he6 = he3->pair->next;
+    Node *n_del = he3->origin;
+    Node *n = he1->origin;
+
+    mesh_remove_edge( mesh, edge );
+
+    he1->element = he2->pair->element;
+    he2->pair->element = NULL;
+    if ( he1->element == NULL )
+        g_warning( "mesh_collapse_edge: he1->element == NULL" ); 
+    he1->element->adjacent_halfedge = he1;
+
+    he4->element = he3->pair->element;
+    he3->pair->element = NULL;
+    if ( he4->element == NULL )
+        g_warning( "mesh_collapse_edge: he4->element == NULL" ); 
+    he4->element->adjacent_halfedge = he4;
+    
+    if ( he6->previous == he5 )
+        g_warning( "mesh_collapse_edge: he6->previous == he5" );
+
+    mesh_remove_edge( mesh, he2->edge );
+    mesh_remove_edge( mesh, he3->edge );
+
+    he5->next = he1;
+    he1->previous = he5;
+    he6->previous = he4;
+    he4->next = he6;
+
+    *NODE_POSITION(n) = point2_interpolate( NODE_POSITION(n), NODE_POSITION(n_del), 0.5 );
+
+    if ( node_is_isolated( n_del ) )
+        g_warning( "mesh_collapse_edge: node n_del should not be isolated" );
+    HalfEdge *iter = n_del->out_halfedge;
+    HalfEdge *start = iter;
+    do
+    {
+        iter->origin = n;
+        iter = iter->pair->next;
+    }
+    while ( iter != start );
+
+    n_del->out_halfedge = NULL;
+    mesh_remove_node( mesh, n_del );
+
+    return TRUE;
+}
+
+
 static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge *he2 )
 {
     g_return_val_if_fail( he1->pair->origin == he2->pair->origin, NULL );
