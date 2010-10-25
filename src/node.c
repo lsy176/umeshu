@@ -26,6 +26,9 @@
 #include "mesh_macros.h"
 #include "node.h"
 
+
+
+
 Node * node_new( gdouble x, gdouble y )
 {
     Node *node = g_slice_new( Node );
@@ -42,7 +45,7 @@ void node_free( Node *node )
 }
 
 
-void node_print( Node *node )
+void node_print( const Node *node )
 {
     g_return_if_fail( node != NULL );
 
@@ -57,7 +60,7 @@ gboolean node_is_isolated( const Node *node )
 }
 
 
-HalfEdge * node_is_at_boundary( Node *node )
+HalfEdge * node_is_at_boundary( const Node *node )
 {
     g_return_val_if_fail( node != NULL, NULL );
 
@@ -77,7 +80,7 @@ HalfEdge * node_is_at_boundary( Node *node )
 }
 
 
-guint node_degree( Node *node )
+guint node_degree( const Node *node )
 {
     g_return_val_if_fail( node != NULL, 0 );
 
@@ -95,3 +98,60 @@ guint node_degree( Node *node )
     return degree;
 }
 
+
+guint node_virtual_degree( const Node *node )
+{
+    g_return_val_if_fail( node != NULL, 0 );
+
+    return node_degree( node ) + ( 6 - node_ideal_degree( node ) );
+}
+
+
+guint node_ideal_degree( const Node *node )
+{
+    g_return_val_if_fail( node != NULL, 0 );
+
+    /* ideal degree for an interior point */
+    guint D = 6;
+
+    HalfEdge *he2 = node_is_at_boundary( node );
+    /* compute ideal degree for a boundary node */
+    if ( he2 != NULL )
+    {
+        HalfEdge *he1 = he2->previous;
+
+        Point2 *p1 = NODE_POSITION(he1->origin);
+        Point2 *p2 = NODE_POSITION(he2->origin);
+        Point2 *p3 = NODE_POSITION(he2->pair->origin);
+
+        gdouble v1[2], v2[2];
+        v1[0] = p1->x - p2->x;
+        v1[1] = p1->y - p2->y;
+        v2[0] = p3->x - p2->x;
+        v2[1] = p3->y - p2->y;
+
+        gdouble angle = atan2( v1[0]*v2[1] - v2[0]*v1[1], v1[0]*v2[0] + v1[1]*v2[1] );
+        if ( angle < 0.0 )
+            angle = 2.0*G_PI + angle;
+
+        if ( angle <= RADIANS(84.85) )
+            D = 2;
+        else if ( RADIANS(84.85) < angle && angle <= RADIANS(146.97) )
+            D = 3;
+        else if ( RADIANS(146.97) < angle && angle <= RADIANS(207.85) )
+            D = 4;
+        else if ( RADIANS(207.85) < angle && angle <= RADIANS(268.33) )
+            D = 5;
+        else if ( RADIANS(268.33) < angle && angle <= RADIANS(328.63) )
+            D = 6;
+        else if ( RADIANS(328.63) < angle && angle < RADIANS(360.0) )
+            D = 7;
+        else
+        {
+            D = 7;
+            g_warning( "node_ideal_degree: strange value of angle" );
+        }
+    }
+
+    return D;
+}

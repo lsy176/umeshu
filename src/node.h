@@ -49,7 +49,7 @@ void node_free( Node *node );
  *
  * \param node node
  */
-void node_print( Node *node );
+void node_print( const Node *node );
 
 /** Returns a boolean indicating if the node is isolated (has no outgoing
  * half-edge).
@@ -69,7 +69,7 @@ gboolean node_is_isolated( const Node *node );
  * outgoing boundary half-edge. Otherwise (inside a mesh or isolated) it returns
  * NULL. 
  */
-HalfEdge * node_is_at_boundary( Node *node );
+HalfEdge * node_is_at_boundary( const Node *node );
 
 /** Returns the degree (number of incident edges) of the node.
  *
@@ -77,7 +77,30 @@ HalfEdge * node_is_at_boundary( Node *node );
  *
  * \return number of incident edges
  */
-guint node_degree( Node *node );
+guint node_degree( const Node *node );
+
+/** Computes the "virtual" degree of a node. This is computed based on node's
+ * position (inner or boundary node) and configuration of the surrounding
+ * boundary edges (in case it is a boundary node). Its principal use is in mesh
+ * relaxation algorithm according to William H. Frey, David A. Field, Mesh
+ * relaxation: A new technique for improving triangulations, International
+ * Journal for Numerical Methods in Engineering 31(6) (1991), pp. 1121-1133,
+ * DOI: 10.1002/nme.1620310607.
+ *
+ * \param node node
+ *
+ * \return Virtual degree of the node
+ */
+guint node_virtual_degree( const Node *node );
+
+/** Computes the ideal degree of a node used in the computation of the virtual
+ * degree.
+ *
+ * \param node node
+ *
+ * \return Virtual degree of the node
+ */
+guint node_ideal_degree( const Node *node );
 
 #endif /* __NODE_H_INCLUDED__ */
 
