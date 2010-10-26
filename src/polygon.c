@@ -190,4 +190,14 @@ Polygon * polygon_create_A( void )
     return poly;
 }
 
+Polygon * polygon_create_box( gdouble xmin, gdouble ymin, gdouble xmax, gdouble ymax )
+{
+    Polygon * poly = polygon_new();
+    polygon_add_vertex( poly, xmin, ymin );
+    polygon_add_vertex( poly, xmax, ymin );
+    polygon_add_vertex( poly, xmax, ymax );
+    polygon_add_vertex( poly, xmin, ymax );
+
+    return poly;
+}
 

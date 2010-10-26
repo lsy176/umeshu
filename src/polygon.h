@@ -84,5 +84,11 @@ Polygon * polygon_create_island( void );
  */
 Polygon * polygon_create_A( void );
 
+/** Creates a predefined polygon with a shape of a rectangle.
+ *
+ * \return created polygon 
+ */
+Polygon * polygon_create_box( gdouble xmin, gdouble ymin, gdouble xmax, gdouble ymax );
+
 #endif /* __POLYGON_H_INCLUDED__ */
 
