@@ -26,16 +26,27 @@
 
 void recursive_swap_delaunay( Mesh *mesh, HalfEdge *he )
 {
+    g_debug( "recursive_swap_delaunay: begin" );
+
     if ( edge_is_delaunay( he->edge ) || ! edge_is_swappable( he->edge ) )
+    {
+        g_debug( "recursive_swap_delaunay: returning from recursion" );
+        g_debug( "recursive_swap_delaunay: end" );
         return;
+    }
     
     HalfEdge *he1 = he->pair->next;
     HalfEdge *he2 = he->pair->previous;
 
+    g_debug( "recursive_swap_delaunay: before swap" );
+    edge_print( he->edge );
     mesh_swap_edge( mesh, he->edge );
+    g_debug( "recursive_swap_delaunay: after swap" );
 
     recursive_swap_delaunay( mesh, he1 );
     recursive_swap_delaunay( mesh, he2 );
+
+    g_debug( "recursive_swap_delaunay: end" );
 }
 
 

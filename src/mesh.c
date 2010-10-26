@@ -61,10 +61,14 @@ Node * mesh_add_node( Mesh * mesh, gdouble x, gdouble y )
 {
     g_return_val_if_fail( mesh != NULL, NULL );
 
+    g_debug( "mesh_add_node: begin" );
+
     Node *node = node_new( x, y );
     mesh->nodes = g_list_prepend( mesh->nodes, node );
     g_hash_table_insert( mesh->hash, node, mesh->nodes );
     mesh->Np++;
+
+    g_debug( "mesh_add_node: end" );
 
     return node;
 }
@@ -74,6 +78,8 @@ void mesh_remove_node( Mesh *mesh, Node *node )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( node != NULL );
+
+    g_debug( "mesh_remove_node: begin" );
 
     if ( ! node_is_isolated( node ) )
     {
@@ -95,6 +101,8 @@ void mesh_remove_node( Mesh *mesh, Node *node )
     mesh->nodes = g_list_delete_link( mesh->nodes, link );
     node_free( node );
     mesh->Np--;
+
+    g_debug( "mesh_remove_node: end" );
 }
 
 
@@ -104,10 +112,12 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
     g_return_val_if_fail( node1 != NULL, NULL );
     g_return_val_if_fail( node2 != NULL, NULL );
 
+    g_debug( "mesh_add_edge: begin" );
+
     // we do not want loop edges
     if ( node1 == node2 )
     {
-        g_warning( "Attempted to add a loop edge to the mesh" );
+        g_warning( "mesh_add_edge: attempted to add a loop edge to the mesh" );
         return NULL;
     }
 
@@ -126,7 +136,7 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
         if ( in_he == NULL )
         {
             edge_free( edge );
-            g_warning( "Did not find free incident half-edge!" );
+            g_warning( "mesh_add_edge: did not find free incident half-edge" );
             return NULL;
         }
 
@@ -148,7 +158,7 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
         if ( in_he == NULL )
         {
             edge_free( edge );
-            g_warning( "Did not find free incident half-edge!" );
+            g_warning( "mesh_add_edge: did not find free incident half-edge" );
             return NULL;
         }
 
@@ -164,6 +174,11 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
     g_hash_table_insert( mesh->hash, edge, mesh->edges );
     mesh->Ne++;
 
+    g_debug( "mesh_add_edge: allocated new edge" );
+    edge_print( edge );
+
+    g_debug( "mesh_add_edge: end" );
+
     return edge;
 }
 
@@ -172,6 +187,8 @@ void mesh_remove_edge( Mesh *mesh, Edge *edge )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( edge != NULL );
+
+    g_debug( "mesh_remove_edge: begin" );
 
     HalfEdge *he1 = &edge->he[0];
     HalfEdge *he2 = &edge->he[1];
@@ -212,8 +229,12 @@ void mesh_remove_edge( Mesh *mesh, Edge *edge )
     GList *link = g_hash_table_lookup( mesh->hash, edge );
     g_hash_table_remove( mesh->hash, edge );
     mesh->edges = g_list_delete_link( mesh->edges, link );
+    g_debug( "mesh_remove_edge: freeing edge from memory" );
+    edge_print( edge );
     edge_free( edge );
     mesh->Ne--;
+
+    g_debug( "mesh_remove_edge: end" );
 }
 
 
@@ -224,9 +245,11 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
     g_return_val_if_fail( he2 != NULL, NULL );
     g_return_val_if_fail( he3 != NULL, NULL );
 
+    g_debug( "mesh_add_element: begin" );
+
     if ( he1->element != NULL || he2->element != NULL || he3->element != NULL )
     {
-        g_warning( "Half-edges not free, cannot create element\n" );
+        g_warning( "mesh_add_element: half-edges not free, cannot create element\n" );
         return NULL;
     }
 
@@ -234,7 +257,7 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
             || he2->pair->origin != he3->origin
             || he3->pair->origin != he1->origin )
     {
-        g_warning( "Half-edges do not form a chain, cannot create element\n" );
+        g_warning( "mesh_add_element: half-edges do not form a chain, cannot create element\n" );
         return NULL;
     }
 
@@ -242,7 +265,7 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
          ! make_adjacent_half_edges( he2, he3 ) ||
          ! make_adjacent_half_edges( he3, he1 ) )
     {
-        g_warning( "Attempting to create non-manifold mesh, cannot create element\n" );
+        g_warning( "mesh_add_element: attempting to create non-manifold mesh, cannot create element\n" );
         return NULL;
     }
 
@@ -254,6 +277,8 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
     g_hash_table_insert( mesh->hash, element, mesh->elements );
     mesh->Nt++;
 
+    g_debug( "mesh_add_element: end" );
+
     return element;
 }
 
@@ -262,6 +287,8 @@ void mesh_remove_element( Mesh *mesh, Element *element )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( element != NULL );
+
+    g_debug( "mesh_remove_element: begin" );
 
     HalfEdge *begin = element->adjacent_halfedge;
     HalfEdge *he_iterator = begin;
@@ -277,6 +304,8 @@ void mesh_remove_element( Mesh *mesh, Element *element )
     mesh->elements = g_list_delete_link( mesh->elements, link );
     element_free( element );
     mesh->Nt--;
+
+    g_debug( "mesh_remove_element: end" );
 }
 
 
@@ -317,6 +346,8 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
     g_return_val_if_fail( mesh != NULL, NULL );
     g_return_val_if_fail( edge != NULL, NULL );
 
+    g_debug( "mesh_swap_edge: begin" );
+
     HalfEdge *e1 = edge->he[0].next;
     HalfEdge *e2 = edge->he[0].previous;
     HalfEdge *e3 = edge->he[1].next;
@@ -329,6 +360,8 @@ Edge * mesh_swap_edge( Mesh *mesh, Edge *edge )
     mesh_add_element( mesh, e2, e3, &new_edge->he[1] );
     mesh_add_element( mesh, e1, &new_edge->he[0], e4 );
 
+    g_debug( "mesh_swap_edge: end" );
+
     return new_edge;
 }
 
@@ -338,6 +371,8 @@ Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
     g_return_val_if_fail( mesh != NULL, NULL );
     g_return_val_if_fail( el != NULL, NULL );
     g_return_val_if_fail( p != NULL, NULL );
+
+    g_debug( "mesh_split_element: begin" );
     
     HalfEdge *he1 = el->adjacent_halfedge;
     HalfEdge *he2 = he1->next;
@@ -351,6 +386,8 @@ Node * mesh_split_element( Mesh *mesh, Element *el, const Point2 *p )
     mesh_add_element( mesh, he2, &e3->he[1], &e2->he[0] );
     mesh_add_element( mesh, he3, &e1->he[1], &e3->he[0] );
 
+    g_debug( "mesh_split_element: end" );
+
     return n;
 }
 
@@ -359,6 +396,9 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( edge != NULL );
+
+    g_debug( "mesh_split_edge: begin" );
+    edge_print( edge );
 
     HalfEdge *he0 = &edge->he[0];
     HalfEdge *he0n = NULL;
@@ -382,6 +422,7 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 )
     Node *n1 = he1->origin;
 
     mesh_remove_edge( mesh, edge );
+
     Point2 p = point2_interpolate( NODE_POSITION(n0), NODE_POSITION(n1), 0.5 );
     Node *n2 = mesh_add_node( mesh, p.x, p.y );
     Edge *e1 = mesh_add_edge( mesh, n0, n2 );
@@ -404,6 +445,8 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 )
         *subedge1 = e1;
     if ( subedge2 != NULL )
         *subedge2 = e2;
+
+    g_debug( "mesh_split_edge: end" );
 }
 
 
@@ -411,15 +454,23 @@ HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh )
 {
     g_return_val_if_fail( mesh != NULL, NULL );
 
+    g_debug( "mesh_get_boundary_halfedge: begin" );
+
     GList *edges_iter;
     for ( edges_iter = mesh->edges; edges_iter != NULL; edges_iter = g_list_next( edges_iter ) )
     {
         Edge *edge = EDGE(edges_iter->data);
 
         if ( halfedge_is_at_boundary( &edge->he[0] ) )
+        {
+            g_debug( "mesh_get_boundary_halfedge: end" );
             return &edge->he[0];
+        }
         else if ( halfedge_is_at_boundary( &edge->he[1] ) )
+        {
+            g_debug( "mesh_get_boundary_halfedge: end" );
             return &edge->he[1];
+        }
     }
 
     /* our mesh should always have a boundary, we do not create solids */
@@ -429,6 +480,8 @@ HalfEdge * mesh_get_boundary_halfedge( const Mesh *mesh )
 
 Element * mesh_locate_element( const Point2 *p, const Element *initial_element )
 {
+    g_debug( "mesh_locate_element: begin" );
+
     HalfEdge *he_iter = initial_element->adjacent_halfedge;
     HalfEdge *he_start = he_iter;
 
@@ -449,6 +502,7 @@ Element * mesh_locate_element( const Point2 *p, const Element *initial_element )
             he_iter = he_iter->next;
         }
     }
+    g_debug( "mesh_locate_element: end" );
 }
 
 
@@ -480,6 +534,8 @@ void mesh_get_bounding_box( const Mesh *mesh, Box2 *box )
 
 gboolean mesh_collapse_edge( Mesh *mesh, Edge *edge )
 {
+    g_debug( "mesh_collapse_edge: begin" );
+
     if ( node_is_at_boundary( edge->he[0].origin ) || node_is_at_boundary( edge->he[1].origin) )
         return FALSE;
 
@@ -537,6 +593,8 @@ gboolean mesh_collapse_edge( Mesh *mesh, Edge *edge )
     n_del->out_halfedge = NULL;
     mesh_remove_node( mesh, n_del );
 
+    g_debug( "mesh_collapse_edge: end" );
+
     return TRUE;
 }
 
@@ -556,7 +614,7 @@ static HalfEdge * find_free_incident_half_edge_in_range( HalfEdge *he1, HalfEdge
         return result;
     else
     {
-        g_warning( "Could not find free incident half edge!\n" );
+        g_warning( "find_free_incident_half_edge_in_range: could not find free incident half edge\n" );
         return NULL;
     }
 }
