@@ -52,17 +52,17 @@ void mesh_refine( Mesh * mesh, RefinementAlgorithm alg, gdouble max_element_area
 /* we assume that mesh is already CDT */
 static void mesh_refine_ruppert( Mesh * mesh, gdouble max_element_area, gdouble min_angle )
 {
-    g_debug( "Entered mesh_refine_ruppert" );
+    g_debug( "mesh_refine_ruppert: begin" );
     while ( TRUE )
     {
         mesh_split_encroached_boundary_edges( mesh );
 
         Element *bad_element = mesh_find_large_element( mesh, max_element_area );
-        g_debug( "Found large element: %p", bad_element );
+        g_debug( "mesh_refine_ruppert: found large element %p", bad_element );
         if ( bad_element == NULL )
         {
             bad_element = mesh_find_skinny_element( mesh, min_angle );
-            g_debug( "Found skinny element: %p", bad_element );
+            g_debug( "mesh_refine_ruppert: found skinny element %p", bad_element );
             if ( bad_element == NULL )
                 break;
         }
@@ -70,29 +70,30 @@ static void mesh_refine_ruppert( Mesh * mesh, gdouble max_element_area, gdouble 
         Point2 circumcenter;
         element_circumcenter_coordinates( bad_element, &circumcenter );
 
-        /* TODO: the following code makes trouble ... why? Is there a bug a
-         * halfedge_ideal_triangle_point? */
-        /* gdouble angle1, angle2, angle3;
-        triangle_angles( NODE_POSITION(he->origin), NODE_POSITION(he->pair->origin), &circumcenter,
-                &angle1, &angle2, &angle3 );
-        if ( MIN( angle1, MIN( angle2, angle3 )) < min_angle )
-        {
-            g_debug( "Using off-center instead of circumcenter to eliminate the bad triangle" );
-            gdouble length;
-            HalfEdge *he = element_min_edge( bad_element, &length );
-            halfedge_ideal_triangle_point( he, length, &circumcenter );
-        } */
+        /* TODO: with the following code the inserted point sometime falls
+         * outside the mesh. */
+        /* gdouble angle1, angle2, angle3; */
+        /* HalfEdge * he = bad_element->adjacent_halfedge; */
+        /* triangle_angles( NODE_POSITION(he->origin), NODE_POSITION(he->pair->origin), &circumcenter, */
+                /* &angle1, &angle2, &angle3 ); */
+        /* if ( MIN( angle1, MIN( angle2, angle3 )) < min_angle ) */
+        /* { */
+            /* g_debug( "Using off-center instead of circumcenter to eliminate the bad triangle" ); */
+            /* gdouble length; */
+            /* HalfEdge *he = element_min_edge( bad_element, &length ); */
+            /* halfedge_ideal_triangle_point( he, length, &circumcenter ); */
+        /* } */
 
         GSList *encroached_half_edges = find_half_edges_encroached_upon_by_point( mesh, &circumcenter );
 
         if ( encroached_half_edges != NULL )
         {
-            g_debug( "The point would encroach some edges, so split them recursively in half" );
+            g_debug( "mesh_refine_ruppert: the point would encroach some edges, so split them recursively in half" );
             split_half_edges_encroached_upon_by_point( mesh, encroached_half_edges, &circumcenter );
         }
         else
         {
-            g_debug( "We can safely insert the point into the mesh" );
+            g_debug( "mesh_refine_ruppert: we can safely insert the point into the mesh" );
             Element *element_to_kill = mesh_locate_element( &circumcenter, bad_element );
             HalfEdge *he1 = mesh_split_element( mesh, element_to_kill, &circumcenter )->out_halfedge->next;
             HalfEdge *he2 = he1->next->pair->next;
@@ -122,12 +123,10 @@ static Element * mesh_find_large_element( const Mesh *mesh, gdouble max_element_
 
 static Element * mesh_find_skinny_element( const Mesh *mesh, gdouble min_angle )
 {
-    g_debug("minimum angle: %f", min_angle );
     GList *elements_iter;
     for ( elements_iter = mesh->elements; elements_iter != NULL; elements_iter = g_list_next( elements_iter ) )
     {
         gdouble el_min_angle = element_minimum_angle( ELEMENT( elements_iter->data ) ); 
-        g_debug( "element's minimum angle: %f", el_min_angle );
         if ( el_min_angle < min_angle )
             return ELEMENT( elements_iter->data );
     }
@@ -165,6 +164,8 @@ static GSList * find_half_edges_encroached_upon_by_point( const Mesh *mesh, cons
 
 static void split_half_edges_encroached_upon_by_point( Mesh *mesh, GSList * encroached_half_edges, const Point2 *p )
 {
+    g_debug( "split_half_edges_encroached_upon_by_point: begin" );
+
     while ( encroached_half_edges != NULL )
     {
         HalfEdge *he = HALFEDGE( encroached_half_edges->data );
@@ -172,18 +173,29 @@ static void split_half_edges_encroached_upon_by_point( Mesh *mesh, GSList * encr
 
         HalfEdge *he1 = he->next;
         HalfEdge *he2 = he->previous;
+
         mesh_split_edge( mesh, he->edge, NULL, NULL );
+
+        HalfEdge * he3 = he1->previous;
+        HalfEdge * he4 = he2->next;
+
         recursive_swap_delaunay( mesh, he1 );
         recursive_swap_delaunay( mesh, he2 );
 
-        if ( halfedge_is_encroached_upon_by_point( he1->previous, p ) )
-            encroached_half_edges = g_slist_prepend( encroached_half_edges, he1 );
-        if ( halfedge_is_encroached_upon_by_point( he2->next, p ) )
-            encroached_half_edges = g_slist_prepend( encroached_half_edges, he2 );
+        if ( halfedge_is_encroached_upon_by_point( he3, p ) )
+        {
+            g_debug( "split_half_edges_encroached_upon_by_point: he3 is encroached" );
+            encroached_half_edges = g_slist_prepend( encroached_half_edges, he3 );
+        }
+        if ( halfedge_is_encroached_upon_by_point( he4, p ) )
+        {
+            g_debug( "split_half_edges_encroached_upon_by_point: he4 is encroached" );
+            encroached_half_edges = g_slist_prepend( encroached_half_edges, he4 );
+        }
     }
+
+    g_debug( "split_half_edges_encroached_upon_by_point: end" );
 }
-
-
 
 
 /* static void find_half_edges_encroached_upon( Mesh *mesh ) */

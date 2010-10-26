@@ -31,13 +31,16 @@
 
 int test_refine( int argc, char *argv[] )
 {
+    /* Polygon *p = polygon_create_box( 0.0, 0.0, 1.0, 1.0 ); */
     Polygon *p = polygon_create_island();
     Mesh *mesh = mesh_triangulate_polygon( p );
-    mesh_make_cdt_by_edge_flipping( mesh );
-    /* mesh_refine is not very robust yet. If we set max_element_area to 0.0005
-     * or less, the functioun segfaults */
-    mesh_refine( mesh, RUPPERT_REFINEMENT, 0.0007, RADIANS(25) );
     mesh_save_to_eps( "test_refine_1.eps", mesh );
+    polygon_free( p );
+
+    mesh_make_cdt_by_edge_flipping( mesh );
+    mesh_save_to_eps( "test_refine_2.eps", mesh );
+    mesh_refine( mesh, RUPPERT_REFINEMENT, 0.0007, RADIANS(30) );
+    mesh_save_to_eps( "test_refine_3.eps", mesh );
     mesh_free( mesh );
 
     return EXIT_SUCCESS;
