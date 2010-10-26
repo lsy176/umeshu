@@ -33,6 +33,9 @@
 /** Small positive number used for some epsilon comparisons */
 #define SMALL_NUMBER (10*DBL_EPSILON)
 
+/** Square-root of 3 */
+#define SQRT3 1.7320508075688772
+
 typedef struct Point2_tag Point2;
 typedef struct Node_tag Node;
 typedef struct HalfEdge_tag HalfEdge;
