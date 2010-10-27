@@ -122,3 +122,66 @@ void mesh_save_to_ply( const gchar *filename, const Mesh *mesh )
     fclose( file );
 }
 
+
+void mesh_save_to_poly( const gchar *filename, const Mesh *mesh )
+{
+    FILE *file = fopen( filename, "w" );
+    if ( file == NULL )
+    {
+        g_warning( "Poly file %s could not be opened\n", filename );
+        return;
+    }
+
+    fprintf( file, "%u 3 0 0\n", mesh->Np );
+
+    guint id = 1;
+    GList *iter;
+    for ( iter = mesh->nodes; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Node * n = NODE(iter->data);
+        n->id = id++;
+        fprintf( file, "%u %12.5e %12.5e 0.0\n", n->id, NODE_POSITION(n)->x, NODE_POSITION(n)->y );
+    }
+
+    fprintf( file, "%u 0\n", mesh->Nt );
+
+    for ( iter = mesh->elements; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Element * el = ELEMENT(iter->data);
+        HalfEdge * he = el->adjacent_halfedge;
+        fprintf( file, "1\n3 %u %u %u\n", he->origin->id, he->next->origin->id, he->previous->origin->id );
+    }
+
+    fprintf( file, "0\n0\n" );
+
+    fclose( file );
+}
+
+
+void mesh_save_to_obj( const gchar *filename, const Mesh *mesh )
+{
+    FILE *file = fopen( filename, "w" );
+    if ( file == NULL )
+    {
+        g_warning( "OBJ file %s could not be opened\n", filename );
+        return;
+    }
+
+    guint id = 1;
+    GList *iter;
+    for ( iter = mesh->nodes; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Node * n = NODE(iter->data);
+        n->id = id++;
+        fprintf( file, "v %12.5e %12.5e 0.0\n", NODE_POSITION(n)->x, NODE_POSITION(n)->y );
+    }
+
+    for ( iter = mesh->elements; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Element * el = ELEMENT(iter->data);
+        HalfEdge * he = el->adjacent_halfedge;
+        fprintf( file, "f %u %u %u\n", he->origin->id, he->next->origin->id, he->previous->origin->id );
+    }
+
+    fclose( file );
+}

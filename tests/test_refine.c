@@ -42,6 +42,8 @@ int test_refine( int argc, char *argv[] )
     mesh_refine( mesh, RUPPERT_REFINEMENT, 0.0007, RADIANS(30) );
     mesh_save_to_eps( "test_refine_3.eps", mesh );
     mesh_save_to_ply( "test_refine_3.ply", mesh );
+    mesh_save_to_poly( "test_refine_3.poly", mesh );
+    mesh_save_to_obj( "test_refine_3.obj", mesh );
     mesh_free( mesh );
 
     return EXIT_SUCCESS;
