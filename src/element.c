@@ -274,3 +274,23 @@ void element_circumcenter_coordinates( const Element *el, Point2 *center )
     triangle_circumcenter_coordinates( p1, p2, p3, center );
 }
 
+
+gdouble element_fem_quality( const Element * el )
+{
+    g_return_val_if_fail( el != NULL, G_MAXDOUBLE );
+
+    HalfEdge *he = el->adjacent_halfedge;
+    Point2 *p1 = NODE_POSITION(he->origin);
+    Point2 *p2 = NODE_POSITION(he->next->origin);
+    Point2 *p3 = NODE_POSITION(he->previous->origin);
+
+    gdouble a, b, c;
+    a = point2_distance( p1, p2 );
+    b = point2_distance( p2, p3 );
+    c = point2_distance( p3, p1 );
+
+    // ratio of the longest edge length and the radius of inscribed circle
+    gdouble h_max = MAX( a, MAX( b, c ) );
+    gdouble s = ( a + b + c )/2.0;
+    return 2.0 * SQRT3 * sqrt((s-a)*(s-b)*(s-c)/s) / h_max;
+}
