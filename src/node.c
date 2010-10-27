@@ -27,14 +27,13 @@
 #include "node.h"
 
 
-
-
 Node * node_new( gdouble x, gdouble y )
 {
     Node *node = g_slice_new( Node );
     NODE_POSITION(node)->x = x;
     NODE_POSITION(node)->y = y;
     node->out_halfedge = NULL;
+    node->id = 0;
     return node;
 }
 

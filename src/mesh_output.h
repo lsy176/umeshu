@@ -38,4 +38,11 @@
  */
 void mesh_save_to_eps( const gchar *filename, const Mesh *mesh );
 
+/** Save the mesh in the PLY file format.
+ *
+ *  \param filename name of the file
+ *  \param mesh mesh
+ */
+void mesh_save_to_ply( const gchar *filename, const Mesh *mesh );
+
 #endif /* __MESH_OUTPUT_H_INCLUDED__ */

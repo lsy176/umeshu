@@ -86,3 +86,39 @@ void mesh_save_to_eps( const gchar *filename, const Mesh *mesh )
     fclose( eps_file );
 }
 
+
+void mesh_save_to_ply( const gchar *filename, const Mesh *mesh )
+{
+    FILE *file = fopen( filename, "w" );
+    if ( file == NULL )
+    {
+        g_warning( "PLY file %s could not be opened\n", filename );
+        return;
+    }
+
+    fprintf( file, "ply\nformat ascii 1.0\n" );
+    fprintf( file, "element vertex %u\n", mesh->Np );
+    fprintf( file, "property float x\nproperty float y\nproperty float z\n" );
+    fprintf( file, "element face %u\n", mesh->Nt );
+    fprintf( file, "property list uchar int vertex_index\n" );
+    fprintf( file, "end_header\n" );
+
+    guint id = 0;
+    GList *iter;
+    for ( iter = mesh->nodes; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Node * n = NODE(iter->data);
+        n->id = id++;
+        fprintf( file, "%12.5e %12.5e 0.0\n", NODE_POSITION(n)->x, NODE_POSITION(n)->y );
+    }
+
+    for ( iter = mesh->elements; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Element * el = ELEMENT(iter->data);
+        HalfEdge * he = el->adjacent_halfedge;
+        fprintf( file, "3 %u %u %u\n", he->origin->id, he->next->origin->id, he->previous->origin->id );
+    }
+
+    fclose( file );
+}
+

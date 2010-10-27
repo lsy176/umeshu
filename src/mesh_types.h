@@ -63,6 +63,9 @@ struct Node_tag
 
     /** One of the half-edges that emanate from the node */
     HalfEdge *out_halfedge;
+
+    /** Node ID number */
+    guint id;
 };
 
 /** Convenience macro to cast a void pointer to a pointer to Node */
