@@ -24,9 +24,9 @@
 
 #include <mesh_types.h>
 
-/** Relaxes a mesh by swapping and/or collapsing edges in order to improve
+/** Relaxes the mesh by swapping and/or collapsing edges in order to improve
  * degrees of nodes and thus to improve subsequent mesh smoothing. The function
- * implements an algorithm published in William H. Frey, David A. Field, Mesh
+ * implements the algorithm published in William H. Frey, David A. Field, Mesh
  * relaxation: A new technique for improving triangulations, International
  * Journal for Numerical Methods in Engineering 31(6) (1991), pp. 1121-1133,
  * DOI: 10.1002/nme.1620310607.
@@ -41,3 +41,4 @@
 void mesh_relax( Mesh *mesh );
 
 #endif /* __MESH_RELAX_H_INCLUDED__ */
+

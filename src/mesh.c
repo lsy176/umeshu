@@ -61,14 +61,10 @@ Node * mesh_add_node( Mesh * mesh, gdouble x, gdouble y )
 {
     g_return_val_if_fail( mesh != NULL, NULL );
 
-    g_debug( "mesh_add_node: begin" );
-
     Node *node = node_new( x, y );
     mesh->nodes = g_list_prepend( mesh->nodes, node );
     g_hash_table_insert( mesh->hash, node, mesh->nodes );
     mesh->Np++;
-
-    g_debug( "mesh_add_node: end" );
 
     return node;
 }
@@ -78,8 +74,6 @@ void mesh_remove_node( Mesh *mesh, Node *node )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( node != NULL );
-
-    g_debug( "mesh_remove_node: begin" );
 
     if ( ! node_is_isolated( node ) )
     {
@@ -101,8 +95,6 @@ void mesh_remove_node( Mesh *mesh, Node *node )
     mesh->nodes = g_list_delete_link( mesh->nodes, link );
     node_free( node );
     mesh->Np--;
-
-    g_debug( "mesh_remove_node: end" );
 }
 
 
@@ -111,8 +103,6 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
     g_return_val_if_fail( mesh != NULL, NULL );
     g_return_val_if_fail( node1 != NULL, NULL );
     g_return_val_if_fail( node2 != NULL, NULL );
-
-    g_debug( "mesh_add_edge: begin" );
 
     // we do not want loop edges
     if ( node1 == node2 )
@@ -174,11 +164,6 @@ Edge * mesh_add_edge( Mesh *mesh, Node *node1, Node *node2 )
     g_hash_table_insert( mesh->hash, edge, mesh->edges );
     mesh->Ne++;
 
-    g_debug( "mesh_add_edge: allocated new edge" );
-    edge_print( edge );
-
-    g_debug( "mesh_add_edge: end" );
-
     return edge;
 }
 
@@ -187,8 +172,6 @@ void mesh_remove_edge( Mesh *mesh, Edge *edge )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( edge != NULL );
-
-    g_debug( "mesh_remove_edge: begin" );
 
     HalfEdge *he1 = &edge->he[0];
     HalfEdge *he2 = &edge->he[1];
@@ -229,12 +212,8 @@ void mesh_remove_edge( Mesh *mesh, Edge *edge )
     GList *link = g_hash_table_lookup( mesh->hash, edge );
     g_hash_table_remove( mesh->hash, edge );
     mesh->edges = g_list_delete_link( mesh->edges, link );
-    g_debug( "mesh_remove_edge: freeing edge from memory" );
-    edge_print( edge );
     edge_free( edge );
     mesh->Ne--;
-
-    g_debug( "mesh_remove_edge: end" );
 }
 
 
@@ -244,8 +223,6 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
     g_return_val_if_fail( he1 != NULL, NULL );
     g_return_val_if_fail( he2 != NULL, NULL );
     g_return_val_if_fail( he3 != NULL, NULL );
-
-    g_debug( "mesh_add_element: begin" );
 
     if ( he1->element != NULL || he2->element != NULL || he3->element != NULL )
     {
@@ -277,8 +254,6 @@ Element * mesh_add_element( Mesh *mesh, HalfEdge *he1, HalfEdge *he2, HalfEdge *
     g_hash_table_insert( mesh->hash, element, mesh->elements );
     mesh->Nt++;
 
-    g_debug( "mesh_add_element: end" );
-
     return element;
 }
 
@@ -287,8 +262,6 @@ void mesh_remove_element( Mesh *mesh, Element *element )
 {
     g_return_if_fail( mesh != NULL );
     g_return_if_fail( element != NULL );
-
-    g_debug( "mesh_remove_element: begin" );
 
     HalfEdge *begin = element->adjacent_halfedge;
     HalfEdge *he_iterator = begin;
@@ -304,8 +277,6 @@ void mesh_remove_element( Mesh *mesh, Element *element )
     mesh->elements = g_list_delete_link( mesh->elements, link );
     element_free( element );
     mesh->Nt--;
-
-    g_debug( "mesh_remove_element: end" );
 }
 
 

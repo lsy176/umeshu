@@ -19,85 +19,57 @@
  * SOFTWARE.
  */
 
+#include <stdio.h>
+
 #include "node.h"
 #include "edge.h"
 #include "mesh.h"
+#include "mesh_output.h"
 
 static gint edge_relaxation_index( const Edge *edge );
 
 void mesh_relax( Mesh *mesh )
 {
+    g_debug( "mesh_relax: begin" );
+
+    gint relax;
+    for ( relax = 4; relax >=2; relax-- )
+    {
+        gboolean swapped = TRUE;
+        while ( swapped )
+        {
+            swapped = FALSE;
+            GList *edges_iter = mesh->edges;
+            while( edges_iter != NULL )
+            {
+                Edge *edge = EDGE( edges_iter->data );
+                edges_iter = g_list_next( edges_iter );
+
+                g_debug( "mesh_relax: checking edge %p", edge );
+                edge_print( edge );
+                if ( edge_is_at_boundary( edge ) )
+                    continue;
+
+                gint index = edge_relaxation_index( edge );
+                g_debug( "mesh_relax: relaxation index = %d", index );
+                if ( index > relax )
+                {
+                    g_debug( "mesh_relax: index > relax" );
+                    if ( edge_is_swappable( edge ) )
+                    {
+                        g_debug( "mesh_relax: edge is swappable, going to swap it" );
+                        swapped = TRUE;
+                        mesh_swap_edge( mesh, edge );
+                    }
+                }
+            }
+        }
+    }
+
     gboolean swapped = TRUE;
-
     while ( swapped )
     {
         swapped = FALSE;
-        GList *edges_iter = mesh->edges;
-        while( edges_iter != NULL )
-        {
-            Edge *edge = EDGE( edges_iter->data );
-            edges_iter = g_list_next( edges_iter );
-
-            if ( edge_is_at_boundary( edge ) )
-                continue;
-
-            if ( edge_relaxation_index( edge ) > 4 )
-            {
-                swapped = TRUE;
-                mesh_swap_edge( mesh, edge );
-            }
-        }
-    }
-
-    swapped = TRUE;
-    while ( swapped )
-    {
-        swapped = FALSE;
-
-        GList * edges_iter = mesh->edges;
-        while( edges_iter != NULL )
-        {
-            Edge *edge = EDGE( edges_iter->data );
-            edges_iter = g_list_next( edges_iter );
-
-            if ( edge_is_at_boundary( edge ) )
-                continue;
-
-            if ( edge_relaxation_index( edge ) > 3 )
-            {
-                swapped = TRUE;
-                mesh_swap_edge( mesh, edge );
-            }
-        }
-    }
-
-    swapped = TRUE;
-    while ( swapped )
-    {
-        swapped = FALSE;
-
-        GList * edges_iter = mesh->edges;
-        while( edges_iter != NULL )
-        {
-            Edge *edge = EDGE( edges_iter->data );
-            edges_iter = g_list_next( edges_iter );
-
-            if ( edge_is_at_boundary( edge ) )
-                continue;
-
-            if ( edge_relaxation_index( edge ) > 2 )
-            {
-                swapped = TRUE;
-                mesh_swap_edge( mesh, edge );
-            }
-        }
-    }
-
-    swapped = TRUE;
-    while ( swapped )
-    {
-        swapped = FALSE;
-
         GList * edges_iter = mesh->edges;
         while( edges_iter != NULL )
         {
@@ -121,6 +93,9 @@ void mesh_relax( Mesh *mesh )
             }
         }
     }
+
+    g_debug( "mesh_relax: end" );
+    return;
 }
 
 static gint edge_relaxation_index( const Edge *edge )

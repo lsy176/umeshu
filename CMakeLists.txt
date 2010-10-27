@@ -56,6 +56,7 @@ set( umeshu_SOURCES
     src/mesh_output.c
     src/mesh_refine.c
     src/mesh_relax.c
+    src/mesh_smooth.c
     src/point2.c
     src/polygon.c
     src/polygon_triangulate.c

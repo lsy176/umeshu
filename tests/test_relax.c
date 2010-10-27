@@ -35,8 +35,10 @@ int test_relax( int argc, char *argv[] )
 {
     Polygon *p = polygon_create_island();
     Mesh *mesh = mesh_triangulate_polygon( p );
+    polygon_free( p );
+
     mesh_make_cdt_by_edge_flipping( mesh );
-    mesh_refine( mesh, RUPPERT_REFINEMENT, 0.001, RADIANS(25) );
+    mesh_refine( mesh, RUPPERT_REFINEMENT, 0.005, RADIANS(30) );
     mesh_save_to_eps( "test_relax_1.eps", mesh );
     printf( "mesh->Np = %u\n", mesh->Np );
     mesh_relax( mesh );
