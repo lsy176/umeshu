@@ -223,9 +223,9 @@ void triangle_circumcenter_coordinates(
  */
 void element_circumcenter_coordinates( const Element *el, Point2 *center );
 
-/** Computes element quality using a criterion used in FEM computations. The
- * measure is computed as a ratio of the radius of the element's inscribed
- * circle and the longest edge.
+/** Computes element quality using a FEM quality measure. The measure is
+ * computed as a ratio of the radius of the element's inscribed circle and the
+ * longest edge.
  *
  * \param el element
  *

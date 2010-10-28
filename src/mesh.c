@@ -369,7 +369,6 @@ void mesh_split_edge( Mesh *mesh, Edge *edge, Edge **subedge1, Edge **subedge2 )
     g_return_if_fail( edge != NULL );
 
     g_debug( "mesh_split_edge: begin" );
-    edge_print( edge );
 
     HalfEdge *he0 = &edge->he[0];
     HalfEdge *he0n = NULL;
