@@ -20,6 +20,7 @@
  */
 
 #include <math.h>
+#include <stdio.h>
 
 #include <edge.h>
 #include <mesh.h>
@@ -99,6 +100,17 @@ int test_edge( int argc, char *argv[] )
     g_return_val_if_fail( edge_is_delaunay( e5 ), 1 );
 
     mesh_free( mesh );
+
+    mesh = mesh_new();
+    n1 = mesh_add_node( mesh, 0.0, 0.0 );
+    n2 = mesh_add_node( mesh, 1.0, 0.0 );
+    e1 = mesh_add_edge( mesh, n1, n2 );
+    Point2 p;
+    halfedge_ideal_triangle_point( &e1->he[0], edge_length( e1 ), &p );
+    g_return_val_if_fail( fabs( p.x - 0.5 ) < SMALL_NUMBER, 1 );
+    printf( " p.x = %12.5e\n", p.x );
+    printf( " p.y = %12.5e\n", p.y );
+    g_return_val_if_fail( fabs( p.y - sin( M_PI/3.0 ) ) < SMALL_NUMBER, 1 );
 
     return 0;
 }
