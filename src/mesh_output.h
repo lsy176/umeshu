@@ -59,4 +59,11 @@ void mesh_save_to_poly( const gchar *filename, const Mesh *mesh );
  */
 void mesh_save_to_obj( const gchar *filename, const Mesh *mesh );
 
+/** Save the mesh in the OFF file format.
+ *
+ *  \param filename name of the file
+ *  \param mesh mesh
+ */
+void mesh_save_to_off( const gchar *filename, const Mesh *mesh );
+
 #endif /* __MESH_OUTPUT_H_INCLUDED__ */

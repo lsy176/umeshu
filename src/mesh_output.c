@@ -39,7 +39,7 @@
 #define FIG_MARGIN 0.1*CM
 
 /* default line width is 0.1mm */
-#define LINE_WIDTH 0.01*CM
+#define LINE_WIDTH 0.005*CM
 
 void mesh_save_to_eps( const gchar *filename, const Mesh *mesh )
 {
@@ -185,3 +185,36 @@ void mesh_save_to_obj( const gchar *filename, const Mesh *mesh )
 
     fclose( file );
 }
+
+
+void mesh_save_to_off( const gchar *filename, const Mesh *mesh )
+{
+    FILE *file = fopen( filename, "w" );
+    if ( file == NULL )
+    {
+        g_warning( "OFF file %s could not be opened\n", filename );
+        return;
+    }
+
+    fprintf( file, "OFF\n" );
+    fprintf( file, "%u %u %u\n", mesh->Np, mesh->Nt, mesh->Ne );
+
+    guint id = 0;
+    GList *iter;
+    for ( iter = mesh->nodes; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Node * n = NODE(iter->data);
+        n->id = id++;
+        fprintf( file, "%12.5e %12.5e 0.0\n", NODE_POSITION(n)->x, NODE_POSITION(n)->y );
+    }
+
+    for ( iter = mesh->elements; iter != NULL; iter = g_list_next( iter ) )
+    {
+        Element * el = ELEMENT(iter->data);
+        HalfEdge * he = el->adjacent_halfedge;
+        fprintf( file, "3 %u %u %u\n", he->origin->id, he->next->origin->id, he->previous->origin->id );
+    }
+
+    fclose( file );
+}
+
