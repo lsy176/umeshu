@@ -20,6 +20,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #include "edge.h"
 #include "mesh_macros.h"
@@ -54,6 +55,7 @@ void edge_set_nodes( Edge *edge, Node *n1, Node *n2 )
 
 void edge_free( Edge *edge )
 {
+    memset( edge, 0, sizeof( Edge ) );
     g_slice_free( Edge, edge );
 }
 
@@ -216,6 +218,6 @@ void halfedge_ideal_triangle_point( const HalfEdge *he, double h , Point2 *p)
     /* the resulting point lies at distance height from the middle point in the
      * direction of the normal */
     p->x = mp.x + height * n[0] / n_length;
-    p->y = mp.x + height * n[1] / n_length;
+    p->y = mp.y + height * n[1] / n_length;
 }
 

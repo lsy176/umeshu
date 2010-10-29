@@ -20,6 +20,7 @@
  */
 
 #include <math.h>
+#include <string.h>
 
 #include "edge.h"
 #include "element.h"
@@ -34,6 +35,7 @@ Element * element_new( void )
 
 void element_free( Element *el )
 {
+    memset( el, 0, sizeof( Element ) );
     g_slice_free( Element, el );
 }
 

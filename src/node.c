@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "edge.h"
 #include "mesh_macros.h"
@@ -40,6 +41,7 @@ Node * node_new( gdouble x, gdouble y )
 
 void node_free( Node *node )
 {
+    memset( node, 0, sizeof( Node ) );
     g_slice_free( Node, node );
 }
 

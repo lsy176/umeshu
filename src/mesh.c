@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+#include <string.h>
+
 #include "edge.h"
 #include "element.h"
 #include "mesh.h"
@@ -52,6 +54,7 @@ void mesh_free( Mesh * mesh )
 
         g_hash_table_destroy( mesh->hash );
 
+        memset( mesh, 0, sizeof( Mesh ) );
         g_slice_free( Mesh, mesh );
     }
 }
