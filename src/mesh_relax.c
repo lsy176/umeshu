@@ -46,7 +46,6 @@ void mesh_relax( Mesh *mesh )
                 edges_iter = g_list_next( edges_iter );
 
                 g_debug( "mesh_relax: checking edge %p", edge );
-                edge_print( edge );
                 if ( edge_is_at_boundary( edge ) )
                     continue;
 
