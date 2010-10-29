@@ -18,3 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include_directories( ${CMAKE_SOURCE_DIR}/src )
+
+add_executable( umeshu-cl umeshu.c )
+target_link_libraries( umeshu-cl ${LIBS} umeshu )
