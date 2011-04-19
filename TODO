@@ -1,0 +1,5 @@
+- use glib's sequences in Ruppert refinement algorithm
+- undo buffer in Ruppert refinement algorithm
+- treat small angles in input polygon
+- better subdivision of boundary edges? See Shewchuk's tutorial
+- curved boundaries
