@@ -19,40 +19,9 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __BOUNDARY_SEGMENT_H_INCLUDED__
-#define __BOUNDARY_SEGMENT_H_INCLUDED__
+#include "ExactAdaptiveKernelInit.h"
 
-#include "Point2.h"
+namespace {
+    ExactAdaptiveKernelInit exact_kernel_init();
+}
 
-class BoundarySegment
-{
-public:
-    virtual ~BoundarySegment() {}
-    virtual Point2 midpoint(Point2 const& p1, Point2 const& p2 ) = 0;
-};
-
-
-class LineBoundarySegment : public BoundarySegment
-{
-public:
-    LineBoundarySegment(Point2 const& p1, Point2 const& p2 ) : p1_(p1), p2_(p2) {}
-    Point2 midpoint(Point2 const& p1, Point2 const& p2);
-    
-private:
-    Point2 p1_, p2_;
-};
-
-
-class CircleBoundarySegment : public BoundarySegment
-{
-public:
-    CircleBoundarySegment(Point2 const& p1, Point2 const& p2, Point2 const& p3);
-    Point2 midpoint(Point2 const& p1, Point2 const& p2);
-    
-private:
-    Point2 p1_, p2_, p3_;
-    Point2 center_;
-    double radius_;
-};
-
-#endif // __BOUNDARY_SEGMENT_H_INCLUDED__
