@@ -23,21 +23,31 @@
 #define __POINT_H_INCLUDED__
 
 #include <boost/math/constants/constants.hpp>
+#include <boost/operators.hpp>
 
 #include <iosfwd>
 
 class Point2
+    : boost::additive< Point2
+    , boost::multiplicative< Point2, double
+    , boost::equality_comparable< Point2
+      > > >
 {
 public:
     Point2() { coord_[0] = 0.0; coord_[1] = 0.0; }
-    Point2( double x, double y ) { coord_[0] = x; coord_[1] = y; }
+    Point2(double x, double y) { coord_[0] = x; coord_[1] = y; }
     
-    double x() const { return coord_[0]; }
-    double& x() { return coord_[0]; }
-    double y() const { return coord_[1]; }
-    double& y() { return coord_[1]; }
+    double  x() const { return coord_[0]; }
+    double& x()       { return coord_[0]; }
+    double  y() const { return coord_[1]; }
+    double& y()       { return coord_[1]; }
     
-    const double* coord() const { return &coord_[0]; }
+    double const* coord() const { return &coord_[0]; }
+
+    Point2 operator+=(Point2 const& p) { x() += p.x(); y() += p.y(); return *this; }
+    Point2 operator-=(Point2 const& p) { x() -= p.x(); y() -= p.y(); return *this; }
+    Point2 operator*=(double a) { x() *= a; y() *= a; return *this; }
+    Point2 operator/=(double a) { x() /= a; y() /= a; return *this; }
 
     friend bool operator== (Point2 const& p1, Point2 const& p2);
 
@@ -47,10 +57,9 @@ private:
     friend std::ostream& operator<<(std::ostream& os, Point2 const& p);
 };
 
-inline bool operator== (Point2 const& p1, Point2 const& p2 )
+inline bool operator== (Point2 const& p1, Point2 const& p2)
 {
-    return p1.x() == p2.x() && p1.y() == p2.y();
-}
+    return p1.x() == p2.x() && p1.y() == p2.y(); }
 
 inline double distance_squared (Point2 const& p1, Point2 const& p2)
 {
@@ -81,8 +90,9 @@ inline Point2 midpoint (Point2 const& p1, Point2 const& p2)
 
 double circumradius (Point2 const& p1, Point2 const& p2, Point2 const& p3);
 void triangle_angles (Point2 const& p1, Point2 const& p2, Point2 const& p3, double& a1, double& a2, double& a3);
-double triangle_area (Point2 const& p1, Point2 const& p2, Point2 const& p3);
+// double triangle_area (Point2 const& p1, Point2 const& p2, Point2 const& p3);
 Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3);
 Point2 midpoint (Point2 const& p1, Point2 const& p2);
 
 #endif // __POINT_H_INCLUDED__
+

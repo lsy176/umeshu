@@ -35,11 +35,18 @@ if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
   message( FATAL_ERROR "In-source build prohibited." )
 endif()
 
-find_package( Boost 1.36.0 REQUIRED )
+set(Boost_USE_STATIC_LIBS        ON)
+set(Boost_USE_MULTITHREADED     OFF)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package( Boost 1.36.0 COMPONENTS unit_test_framework REQUIRED )
+
+# find_package( Boost 1.36.0 REQUIRED )
 if (!Boost_FOUND)
     message( FATAL_ERROR "Boost C++ libraries required." )
 endif()
 include_directories(${Boost_INCLUDE_DIRS})
+
+include_directories(${umeshu_SOURCE_DIR}/umeshu++)
 
 set( umeshu_SOURCES
     umeshu++/BoundarySegment.cpp
@@ -55,11 +62,13 @@ set( umeshu_SOURCES
     umeshu++/Predicates.cpp
     )
 
-add_executable( umeshu umeshu++/main.cpp ${umeshu_SOURCES} )
+add_library(umeshu ${umeshu_SOURCES})
+add_executable(umeshu-meshgen umeshu++/main.cpp)
+target_link_libraries(umeshu-meshgen umeshu)
 
 ########### Tests ##############################################################
 enable_testing()
-# add_subdirectory( tests )
+add_subdirectory( tests )
 
 ########### Generate predicates_init.h #########################################
 # add_executable( predicates_init src/predicates_init.c )

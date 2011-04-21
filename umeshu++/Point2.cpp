@@ -51,18 +51,9 @@ void triangle_angles (Point2 const& p1, Point2 const& p2, Point2 const& p3, doub
     double bb = b*b;
     double cc = c*c;
     
-    a1 = acos((bb+cc-aa)/(2.0*b*c));
-    a2 = acos((aa+cc-bb)/(2.0*a*c));
-    a3 = acos((aa+bb-cc)/(2.0*a*b));
-}
-
-double triangle_area (Point2 const& p1, Point2 const& p2, Point2 const& p3)
-{
-    double l1 = distance(p1, p2);
-    double l2 = distance(p2, p3);
-    double l3 = distance(p3, p1);
-    double s = 0.5*(l1 + l2 + l3);
-    return std::sqrt(s*(s - l1)*(s - l2)*(s - l3));
+    a1 = std::acos((bb+cc-aa)/(2.0*b*c));
+    a2 = std::acos((aa+cc-bb)/(2.0*a*c));
+    a3 = std::acos((aa+bb-cc)/(2.0*a*b));
 }
 
 Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3)
