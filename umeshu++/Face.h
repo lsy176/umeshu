@@ -29,12 +29,9 @@
 
 #include <boost/assert.hpp>
 
-//template <typename Kernel>
-class Face : public Identifiable {
+class Face : public Identifiable
+{
 public:
-//    typedef Kernel kernel_type;
-//    typedef Face<Kernel>* pointer;
-
     explicit Face(HalfEdgeHandle adj_edge)
     : adj_edge_(adj_edge), area_(0.0)
     { this->compute_area<ExactAdaptiveKernel>(); }
@@ -80,13 +77,32 @@ public:
 
     void nodes(NodeHandle& n1, NodeHandle& n2, NodeHandle& n3) const;
     void vertices(Point2& v1, Point2& v2, Point2& v3) const;
+
+    friend bool operator== (Face const& f1, Face const& f2);
+    friend bool operator!= (Face const& f1, Face const& f2);
+    friend std::ostream& operator<< (std::ostream& os, Face const& f);
     
 private:
     HalfEdgeHandle adj_edge_;
     double area_;
 };
 
-std::ostream& operator<< (std::ostream& os, Face const& f);
+inline bool operator== (Face const& f1, Face const& f2)
+{
+    NodeHandle f1n1, f1n2, f1n3;
+    NodeHandle f2n1, f2n2, f2n3;
+    f1.nodes(f1n1, f1n2, f1n3);
+    f2.nodes(f2n1, f2n2, f2n3);
+    if (f1n1 == f2n1 && f1n2 == f2n2 && f1n3 == f2n3 ) return true;
+    if (f1n1 == f2n2 && f1n2 == f2n3 && f1n3 == f2n1 ) return true;
+    if (f1n1 == f2n3 && f1n2 == f2n1 && f1n3 == f2n2 ) return true;
+    return false;
+}
+
+inline bool operator!= (Face const& f1, Face const& f2)
+{
+    return !(f1 == f2);
+}
 
 struct compare_faces {
     bool operator() (FaceHandle f1, FaceHandle f2) const;

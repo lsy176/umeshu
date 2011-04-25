@@ -51,8 +51,24 @@ private:
     bool split_permitted(HalfEdgeHandle he, double d);
 
     void recursive_swap_delaunay (HalfEdgeHandle he, bool save_to_undo_stack);
-    FaceHandle get_bad_face ();
+    FaceHandle get_bad_face () const;
+    FaceHandle get_original_bad_face(NodeHandle n1, NodeHandle n2, NodeHandle n3) const;
+
+    NodeHandle try_kill_face(FaceHandle face_to_kill, Point2 const& center, std::stack<HalfEdgeHandle>& E);
+    void undo_kill_face(NodeHandle new_node);
+
+    NodeHandle try_kill_edge(EdgeHandle edge_to_kill, Point2 const& center, std::stack<HalfEdgeHandle>& E);
+    void undo_kill_edge(NodeHandle new_node, NodeHandle n1, NodeHandle n2, bool build_123, bool build_142, BoundarySegment *bseginfo);
+
+    void finish_dealing_with_bad_face(FaceHandle bad_face, std::stack<HalfEdgeHandle> &E);
+
     void undo_swapping ();
+    void clear_undo_stack() {
+        while (not undo_stack_.empty()) {
+            undo_stack_.pop();
+        }
+    }
+
     void remove_node (NodeHandle n);
     FaceHandle add_face (HalfEdgeHandle he1, HalfEdgeHandle he2, HalfEdgeHandle he3);
     EdgeHandle swap_edge (EdgeHandle e);
@@ -73,10 +89,6 @@ private:
     std::stack<EdgeHandle> undo_stack_;
 };
 
-// TODO: osetrit pouzivani bad_face a entity_to_kill v pripade, ze ukazatel uz neni platny kvuli prehazovani hran
-// TODO: cely ten zatraceny kod zkontrolovat
-// 
-
 template <typename Mesh>
 void Mesher<Mesh>::refine (double max_face_area, double min_angle)
 {
@@ -96,12 +108,12 @@ void Mesher<Mesh>::refine (double max_face_area, double min_angle)
         this->enqueue_bad_face(f);
     }
 
-    int i = 0;
-
     FaceHandle bad_face = NULL;
     while ((bad_face = this->get_bad_face()) != NULL) {
         Point2 center = bad_face->circumcenter<kernel_type>();
 //        Point2 center = bad_face->offcenter<kernel_type>(offconstant);
+        NodeHandle n1, n2, n3;
+        bad_face->nodes(n1, n2, n3);
 
         typename Mesh::Point2Location loc;
         void *entity_to_kill;
@@ -112,142 +124,38 @@ void Mesher<Mesh>::refine (double max_face_area, double min_angle)
         BOOST_ASSERT(undo_stack_.empty());
         
         if (loc == Mesh::IN_FACE) {
-            FaceHandle face_to_kill = static_cast<FaceHandle>(entity_to_kill);
-            double d = bad_face->shortest_edge_length();
-            double bad_face_area = bad_face->area<kernel_type>();
-
-            NodeHandle new_node = this->split_face(face_to_kill, center);
-
-            HalfEdgeHandle he1 = new_node->out_he()->next();
-            HalfEdgeHandle he2 = he1->next()->pair()->next();
-            HalfEdgeHandle he3 = he2->next()->pair()->next();
-
-            this->recursive_swap_delaunay(he1, true);
-            this->recursive_swap_delaunay(he2, true);
-            this->recursive_swap_delaunay(he3, true);
-            
             std::stack<HalfEdgeHandle> E;
-            this->collect_encroached_boundary_edges(new_node, E);
+            NodeHandle new_node = this->try_kill_face(static_cast<FaceHandle>(entity_to_kill), center, E);
+
             if (E.empty()) {
-                while (not undo_stack_.empty()) { undo_stack_.pop(); }
+                this->clear_undo_stack();
                 this->treat_new_node(new_node, true);                
             } else {
-                this->undo_swapping();
-
-                he1 = new_node->out_he()->next();
-                he2 = he1->next()->pair()->next();
-                he3 = he2->next()->pair()->next();
-                this->remove_node(new_node);
-                this->add_face(he1, he2, he3);
-
-                // IMPORTANT TODO AND A BUG AS IT IS NOW!!!
-                // Recover somehow the handle to the original bad face
-                // The following line usually gives the correct handle, sometimes it does not
-                FaceHandle new_bad_face = this->get_bad_face();
-//                std::cout << "New bad face: " << *new_bad_face << std::endl;
-//                BOOST_ASSERT(bad_face_area == new_bad_face->area<kernel_type>());
-
-                while (not E.empty()) {
-                    HalfEdgeHandle he = E.top();
-                    E.pop();
-                    if (bad_face_area > max_face_area_ || this->split_permitted(he, d)) {
-                        enc_hedges_.insert(he);
-                    }
-                }
-                if (not enc_hedges_.empty()) {
-//                    no need to enque again, still in bad set
-//                    this->enqueue_bad_face(new_bad_face);
-                    this->split_encroached_boundary_edges(true);
-                } else {
-                    this->dequeue_bad_face(new_bad_face);
-                }
+                this->undo_kill_face(new_node);
+                bad_face = this->get_original_bad_face(n1, n2, n3);
+                BOOST_ASSERT(bad_face != NULL);
+                this->finish_dealing_with_bad_face(bad_face, E);
             }
         } else if (loc == Mesh::ON_EDGE) {
             EdgeHandle edge_to_kill = static_cast<EdgeHandle>(entity_to_kill);
-
-            double d = bad_face->shortest_edge_length();
-            double bad_face_area = bad_face->area<kernel_type>();
-
+            
             bool build_123 = edge_to_kill->he1()->face() != NULL;
             bool build_142 = edge_to_kill->he2()->face() != NULL;
             NodeHandle n1 = edge_to_kill->he1()->origin();
             NodeHandle n2 = edge_to_kill->he2()->origin();
-            NodeHandle n3 = NULL, n4 = NULL;
-            if (build_123) {
-                n3 = edge_to_kill->he1()->prev()->origin();                
-            }
-            if (build_142) {
-                n4 = edge_to_kill->he2()->prev()->origin();
-            }
-
             BoundarySegment *bseginfo = edge_to_kill->boundary_info();
-            NodeHandle new_node = this->split_edge(edge_to_kill, center);
 
-            HalfEdgeHandle he_start = new_node->out_he();
-            HalfEdgeHandle he_iter = he_start;
-            do {
-                if (he_iter->face() != NULL) {
-                    this->recursive_swap_delaunay(he_iter->next(), true);
-                }
-                he_iter = he_iter->pair()->next();
-            } while (he_iter != he_start);
-            
             std::stack<HalfEdgeHandle> E;
-            this->collect_encroached_boundary_edges(new_node, E);
+            NodeHandle new_node = this->try_kill_edge(edge_to_kill, center, E);
+
             if (E.empty()) {
-                while (not undo_stack_.empty()) { undo_stack_.pop(); }
-                this->treat_new_node(new_node, true);                
+                this->clear_undo_stack();
+                this->treat_new_node(new_node, true);   
             } else {
-                this->undo_swapping();
-
-                HalfEdgeHandle he1 = NULL, he2 = NULL;
-                he_iter = he_start;
-                do {
-                    if (he_iter->pair()->origin() == n1) {
-                        he1 = he_iter;
-                    }
-                    if (he_iter->pair()->origin() == n2) {
-                        he2 = he_iter;
-                    }
-                    he_iter = he_iter->pair()->next();
-                } while (he_iter != he_start);
-                HalfEdgeHandle he23 = NULL, he31 = NULL, he14 = NULL, he42 = NULL;
-                if (build_123) {
-                    he23 = he2->next();
-                    he31 = he1->pair()->prev();
-                }
-                if (build_142) {
-                    he14 = he1->next();
-                    he42 = he2->pair()->prev();
-                }
-                this->remove_node(new_node);
-                EdgeHandle new_edge = mesh_.add_edge(n1, n2, bseginfo);
-                if (build_123) {
-                    HalfEdgeHandle he12 = new_edge->halfedge_with_origin(n1);
-                    this->add_face(he12, he23, he31);
-                }
-                if (build_142) {
-                    HalfEdgeHandle he21 = new_edge->halfedge_with_origin(n2);
-                    this->add_face(he21, he14, he42);
-                }
-
-                // IMPORTANT TODO AND A BUG AS IT IS NOW!!!
-                // Recover somehow the handle to the original bad face
-                // The following line usually gives the correct handle, sometimes it does not
-                FaceHandle new_bad_face = this->get_bad_face();
-                
-                while (not E.empty()) {
-                    HalfEdgeHandle he = E.top();
-                    E.pop();
-                    if (bad_face_area > max_face_area_ || this->split_permitted(he, d)) {
-                        enc_hedges_.insert(he);
-                    }
-                }
-                if (not enc_hedges_.empty()) {
-                    this->split_encroached_boundary_edges(true);
-                } else {
-                    this->dequeue_bad_face(new_bad_face);
-                }
+                this->undo_kill_edge(new_node, n1, n2, build_123, build_142, bseginfo);
+                bad_face = this->get_original_bad_face(n1, n2, n3);
+                BOOST_ASSERT(bad_face != NULL);
+                this->finish_dealing_with_bad_face(bad_face, E);
             }
         } else { // loc == OUTSIDE_MESH
             std::clog << "Point outside mesh, splitting the boundary edge\n";
@@ -256,6 +164,36 @@ void Mesher<Mesh>::refine (double max_face_area, double min_angle)
             this->split_encroached_boundary_edges(false);
         }
     }
+}
+
+template <typename Mesh>
+void Mesher<Mesh>::finish_dealing_with_bad_face(FaceHandle bad_face, std::stack<HalfEdgeHandle> &E)
+{
+    while (not E.empty()) {
+        HalfEdgeHandle he = E.top();
+        E.pop();
+        if (bad_face->area<kernel_type>() > max_face_area_ || this->split_permitted(he, bad_face->shortest_edge_length())) {
+            enc_hedges_.insert(he);
+        }
+    }
+    if (not enc_hedges_.empty()) {
+        this->split_encroached_boundary_edges(true);
+    } else {
+        this->dequeue_bad_face(bad_face);
+    }
+}
+
+template <typename Mesh>
+FaceHandle Mesher<Mesh>::get_original_bad_face(NodeHandle n1, NodeHandle n2, NodeHandle n3) const
+{
+    BOOST_FOREACH(FaceHandle f, bad_faces_) {
+        NodeHandle fn1, fn2, fn3;
+        f->nodes(fn1, fn2, fn3);
+        if (fn1 == n1 && fn2 == n2 && fn3 == n3 ) return f;
+        if (fn1 == n2 && fn2 == n3 && fn3 == n1 ) return f;
+        if (fn1 == n3 && fn2 == n1 && fn3 == n2 ) return f;
+    }
+    return NULL;
 }
 
 template <typename Mesh>
@@ -362,6 +300,94 @@ void Mesher<Mesh>::treat_new_node (NodeHandle n, bool check_quality)
 }
 
 template <typename Mesh>
+NodeHandle Mesher<Mesh>::try_kill_face(FaceHandle face_to_kill, Point2 const &center, std::stack<HalfEdgeHandle>& E)
+{
+    NodeHandle new_node = this->split_face(face_to_kill, center);
+
+    HalfEdgeHandle he1 = new_node->out_he()->next();
+    HalfEdgeHandle he2 = he1->next()->pair()->next();
+    HalfEdgeHandle he3 = he2->next()->pair()->next();
+
+    this->recursive_swap_delaunay(he1, true);
+    this->recursive_swap_delaunay(he2, true);
+    this->recursive_swap_delaunay(he3, true);
+
+    this->collect_encroached_boundary_edges(new_node, E);
+
+    return new_node;
+}
+
+template <typename Mesh>
+void Mesher<Mesh>::undo_kill_face(NodeHandle new_node)
+{
+    this->undo_swapping();
+    HalfEdgeHandle he1 = new_node->out_he()->next();
+    HalfEdgeHandle he2 = he1->next()->pair()->next();
+    HalfEdgeHandle he3 = he2->next()->pair()->next();
+    this->remove_node(new_node);
+    this->add_face(he1, he2, he3);
+}
+
+template <typename Mesh>
+NodeHandle Mesher<Mesh>::try_kill_edge(EdgeHandle edge_to_kill, Point2 const &center, std::stack<HalfEdgeHandle>& E)
+{
+    NodeHandle new_node = this->split_edge(edge_to_kill, center);
+
+    HalfEdgeHandle he_start = new_node->out_he();
+    HalfEdgeHandle he_iter = he_start;
+    do {
+        HalfEdgeHandle he_next = he_iter->pair()->next();
+        if (he_iter->face() != NULL) {
+            this->recursive_swap_delaunay(he_iter->next(), true);
+        }
+        he_iter = he_next;
+    } while (he_iter != he_start);
+
+    this->collect_encroached_boundary_edges(new_node, E);
+
+    return new_node;
+}
+
+template <typename Mesh>
+void Mesher<Mesh>::undo_kill_edge(NodeHandle new_node, NodeHandle n1, NodeHandle n2, bool build_123, bool build_142, BoundarySegment *bseginfo)
+{
+    this->undo_swapping();
+
+    HalfEdgeHandle he1 = NULL, he2 = NULL;
+    HalfEdgeHandle he_start = new_node->out_he();
+    HalfEdgeHandle he_iter = he_start;
+    do {
+        if (he_iter->pair()->origin() == n1) {
+            he1 = he_iter;
+        }
+        if (he_iter->pair()->origin() == n2) {
+            he2 = he_iter;
+        }
+        he_iter = he_iter->pair()->next();
+    } while (he_iter != he_start);
+
+    HalfEdgeHandle he23 = NULL, he31 = NULL, he14 = NULL, he42 = NULL;
+    if (build_123) {
+        he23 = he2->next();
+        he31 = he1->pair()->prev();
+    }
+    if (build_142) {
+        he14 = he1->next();
+        he42 = he2->pair()->prev();
+    }
+    this->remove_node(new_node);
+    EdgeHandle new_edge = mesh_.add_edge(n1, n2, bseginfo);
+    if (build_123) {
+        HalfEdgeHandle he12 = new_edge->halfedge_with_origin(n1);
+        this->add_face(he12, he23, he31);
+    }
+    if (build_142) {
+        HalfEdgeHandle he21 = new_edge->halfedge_with_origin(n2);
+        this->add_face(he21, he14, he42);
+    }
+}
+
+template <typename Mesh>
 bool Mesher<Mesh>::split_permitted (HalfEdgeHandle he, double d)
 {
     if (not he->prev()->edge()->is_boundary() && not he->next()->edge()->is_boundary()) {
@@ -389,7 +415,7 @@ bool Mesher<Mesh>::split_permitted (HalfEdgeHandle he, double d)
     
     double l = he->edge()->length();
     double other_l =other_he->edge()->length();
-    if (std::abs(l-other_l) > 0.001) {
+    if (std::abs(l-other_l) > 0.00001) {
         return true;
     }
 
@@ -556,7 +582,7 @@ void Mesher<Mesh>::undo_swapping()
 }
 
 template <typename Mesh>
-FaceHandle Mesher<Mesh>::get_bad_face ()
+FaceHandle Mesher<Mesh>::get_bad_face () const
 {
     if (bad_faces_.empty()) {
         return NULL;

@@ -38,9 +38,9 @@ int main (int argc, const char * argv[])
     double c = cos(degrees_to_radians(10));
     
     NodeHandle n1 = m.add_node(Point2(0.0,0.0));
-//    NodeHandle n2 = m.add_node(Point2(10*c,10*s));
-//    NodeHandle n3 = m.add_node(Point2(c-s,c+s));
-//    NodeHandle n4 = m.add_node(Point2(-s,c));
+    // NodeHandle n2 = m.add_node(Point2(5.3*c,5.3*s));
+    // NodeHandle n3 = m.add_node(Point2(c-s,c+s));
+    // NodeHandle n4 = m.add_node(Point2(-s,c));
     NodeHandle n2 = m.add_node(Point2(5.3,0.0));
     NodeHandle n3 = m.add_node(Point2(1.0,1.0));
     NodeHandle n4 = m.add_node(Point2(0.0,1.0));
@@ -60,13 +60,11 @@ int main (int argc, const char * argv[])
     Postscript_stream ps2("mesh_2.eps", m.bounding_box());
     ps2 << m;
     
-    std::cout << m.bounding_box();
-    std::cout << *e1->he1();
-
-    mesher.refine(0.001, 20);
+    mesher.refine(0.001, 30);
     Postscript_stream ps3("mesh_3.eps", m.bounding_box());
     ps3 << m;
-    std::cout << m.smallest_angle() << std::endl;
+
+    std::cout << "Number of faces: " << m.number_of_faces() << std::endl;
 
     return 0;
 }
