@@ -36,8 +36,6 @@
 #include <boost/utility.hpp>
 #include <boost/foreach.hpp>
 
-#include <set>
-
 template <class Kernel>
 class Mesh : public boost::noncopyable {
 public:
@@ -87,6 +85,7 @@ private:
     template <typename K> friend Postscript_stream& operator<< (Postscript_stream& ps, Mesh<K> const& m);
     
     template<typename> friend class Mesher;
+    template<typename> friend class Triangulator;
 };
 
 template <typename Kernel>

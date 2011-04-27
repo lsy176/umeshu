@@ -58,6 +58,7 @@ set( umeshu_SOURCES
     umeshu++/FastKernel.cpp
     umeshu++/Node.cpp
     umeshu++/Point2.cpp
+    umeshu++/Polygon.cpp
     umeshu++/Postscript_ostream.cpp
     umeshu++/Predicates.cpp
     )
