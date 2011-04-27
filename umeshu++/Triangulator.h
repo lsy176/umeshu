@@ -3,7 +3,6 @@
 
 #include "Exceptions.h"
 #include "Polygon.h"
-#include "Mesh.h"
 
 #include <boost/assert.hpp>
 #include <boost/unordered_set.hpp>
@@ -25,8 +24,9 @@ private:
     bool halfedge_origin_is_convex(HalfEdgeHandle he) const;
     bool halfedge_origin_is_ear(HalfEdgeHandle he) const;
 
+    void classify_vertices(HalfEdgeHandle bhe);
+
     boost::unordered_set<HalfEdgeHandle> reflex_vertices;
-    boost::unordered_set<HalfEdgeHandle> convex_vertices;
     boost::unordered_set<HalfEdgeHandle> ears;
 };
 
@@ -46,6 +46,27 @@ HalfEdgeHandle Triangulator<Mesh>::add_polygon_to_mesh(Polygon const &poly, Mesh
     return last_edge->halfedge_with_origin(prev_node);
 }
 
+template <typename Mesh>
+void Triangulator<Mesh>::classify_vertices(HalfEdgeHandle bhe)
+{
+    boost::unordered_set<HalfEdgeHandle> convex_vertices;
+
+    HalfEdgeHandle he_iter = bhe;
+    do {
+        if (halfedge_origin_is_convex(he_iter)) {
+            convex_vertices.insert(he_iter);
+        } else {
+            reflex_vertices.insert(he_iter);
+        }
+        he_iter = he_iter->next();
+    } while (he_iter != bhe);
+
+    BOOST_FOREACH(HalfEdgeHandle conv_he, convex_vertices) {
+        if (this->halfedge_origin_is_ear(conv_he)) {
+            ears.insert(conv_he);
+        }
+    }
+}
 
 template <typename Mesh>
 void Triangulator<Mesh>::triangulate(Polygon const &poly, Mesh &mesh)
@@ -54,23 +75,7 @@ void Triangulator<Mesh>::triangulate(Polygon const &poly, Mesh &mesh)
         throw triangulator_error();
     }
 
-
-    HalfEdgeHandle he_start = this->add_polygon_to_mesh(poly, mesh);
-    HalfEdgeHandle he_iter = he_start;
-    do {
-        if (halfedge_origin_is_convex(he_iter)) {
-            convex_vertices.insert(he_iter);
-        } else {
-            reflex_vertices.insert(he_iter);
-        }
-        he_iter = he_iter->next();
-    } while (he_iter != he_start);
-
-    BOOST_FOREACH(HalfEdgeHandle conv_he, convex_vertices) {
-        if (this->halfedge_origin_is_ear(conv_he)) {
-            ears.insert(conv_he);
-        }
-    }
+    this->classify_vertices(this->add_polygon_to_mesh(poly, mesh));
 
     while (not ears.empty()) {
         HalfEdgeHandle he2 = *ears.begin();
@@ -79,52 +84,42 @@ void Triangulator<Mesh>::triangulate(Polygon const &poly, Mesh &mesh)
         NodeHandle n1 = he1->origin();
         NodeHandle n3 = he5->origin();
 
-        // since we will cut it off, remove the ear from ears and convex
-        // vertices 
+        // since we will cut it off, remove the ear from ears. Also, we have to
+        // erase he1 and he5 from all the sets, since after cutting the ear we
+        // will have to update their info anyway
         ears.erase(he2);
-        convex_vertices.erase(he2);
-        // we have to erase he1 and he5 from all the sets, since after cutting
-        // the ear we will have to update their info anyway
         ears.erase(he1);
-        convex_vertices.erase(he1);
         reflex_vertices.erase(he1);
         ears.erase(he5);
-        convex_vertices.erase(he5);
         reflex_vertices.erase(he5);
        
-        // cut off the ear:
-        // add an edge connecting the ear's neighbours
-        HalfEdgeHandle he4 = NULL;
+        // if this is not the last ear, i.e., only one triangle left to
+        // triangulate
         if (he5 != he1->prev()) {
             EdgeHandle e = mesh.add_edge(n3, n1, NULL);
             HalfEdgeHandle he3 = e->halfedge_with_origin(n3);
-            he4 = he3->pair();
-            // add ear's triangle to the mesh
+            HalfEdgeHandle he4 = he3->pair();
             mesh.add_face(he1, he2, he3);
+
+            bool he4_is_convex = false, he5_is_convex = false;
+            if (halfedge_origin_is_convex(he4)) {
+                he4_is_convex = true;
+            } else {
+                reflex_vertices.insert(he4);
+            }
+            if (halfedge_origin_is_convex(he5)) {
+                he5_is_convex = true;
+            } else {
+                reflex_vertices.insert(he5);
+            }
+            if (he4_is_convex && halfedge_origin_is_ear(he4)) {
+                ears.insert(he4);
+            }
+            if (he5_is_convex && halfedge_origin_is_ear(he5)) {
+                ears.insert(he5);
+            }
         } else {
             mesh.add_face(he1, he2, he5);
-            continue;
-        }
-
-        bool he4_is_convex = false, he5_is_convex = false;
-        if (halfedge_origin_is_convex(he4)) {
-            convex_vertices.insert(he4);
-            he4_is_convex = true;
-        } else {
-            reflex_vertices.insert(he4);
-        }
-        if (halfedge_origin_is_convex(he5)) {
-            convex_vertices.insert(he5);
-            he5_is_convex = true;
-        } else {
-            reflex_vertices.insert(he5);
-        }
-
-        if (he4_is_convex && halfedge_origin_is_ear(he4)) {
-            ears.insert(he4);
-        }
-        if (he5_is_convex && halfedge_origin_is_ear(he5)) {
-            ears.insert(he5);
         }
     }
 }
