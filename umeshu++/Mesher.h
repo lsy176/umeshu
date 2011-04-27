@@ -29,7 +29,6 @@
 
 #include <boost/lexical_cast.hpp>
 #include <stack>
-#include <list>
 #include <set>
 
 template <typename Mesh>
@@ -141,8 +140,8 @@ void Mesher<Mesh>::refine (double max_face_area, double min_angle)
             
             bool build_123 = edge_to_kill->he1()->face() != NULL;
             bool build_142 = edge_to_kill->he2()->face() != NULL;
-            NodeHandle n1 = edge_to_kill->he1()->origin();
-            NodeHandle n2 = edge_to_kill->he2()->origin();
+            NodeHandle n1_ = edge_to_kill->he1()->origin();
+            NodeHandle n2_ = edge_to_kill->he2()->origin();
             BoundarySegment *bseginfo = edge_to_kill->boundary_info();
 
             std::stack<HalfEdgeHandle> E;
@@ -152,7 +151,7 @@ void Mesher<Mesh>::refine (double max_face_area, double min_angle)
                 this->clear_undo_stack();
                 this->treat_new_node(new_node, true);   
             } else {
-                this->undo_kill_edge(new_node, n1, n2, build_123, build_142, bseginfo);
+                this->undo_kill_edge(new_node, n1_, n2_, build_123, build_142, bseginfo);
                 bad_face = this->get_original_bad_face(n1, n2, n3);
                 BOOST_ASSERT(bad_face != NULL);
                 this->finish_dealing_with_bad_face(bad_face, E);
