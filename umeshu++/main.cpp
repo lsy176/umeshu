@@ -27,11 +27,15 @@
 #include "Mesh.h"
 #include "Mesher.h"
 #include "Postscript_ostream.h"
+#include "Relaxer.h"
+#include "Smoother.h"
 #include "Triangulator.h"
 
 typedef Mesh<ExactAdaptiveKernel> mesh;
 typedef Triangulator<mesh> triangulator;
 typedef Mesher<mesh> mesher;
+typedef Relaxer<mesh> relaxer;
+typedef Smoother<mesh> smoother;
 
 int main (int argc, const char * argv[])
 {
@@ -54,6 +58,27 @@ int main (int argc, const char * argv[])
         Postscript_stream ps3("mesh_3.eps", m.bounding_box());
         ps3 << m;
 
+        relaxer relax;
+        relax.relax(m);
+        Postscript_stream ps4("mesh_4.eps", m.bounding_box());
+        ps4 << m;
+
+        smoother smooth;
+        smooth.smooth(m, 5);
+        Postscript_stream ps5("mesh_5.eps", m.bounding_box());
+        ps5 << m;
+
+        // code does not passes a debug assert:
+        // meshgen.refine(0.0001, 30);
+        // Postscript_stream ps6("mesh_6.eps", m.bounding_box());
+        // ps6 << m;
+
+        // smooth.smooth(m, 5);
+        // Postscript_stream ps7("mesh_7.eps", m.bounding_box());
+        // ps7 << m;
+
+        std::cout << "Number of nodes: " << m.number_of_nodes() << std::endl;
+        std::cout << "Number of edges: " << m.number_of_edges() << std::endl;
         std::cout << "Number of faces: " << m.number_of_faces() << std::endl;
     }
     catch (boost::exception & e) {
