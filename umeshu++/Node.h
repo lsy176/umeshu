@@ -47,8 +47,6 @@ public:
     inline bool is_isolated() const { return out_he_ == NULL; }
     HalfEdgeHandle is_boundary() const;
     int degree() const;
-    int virtual_degree() const;
-    int ideal_degree() const;
     
     HalfEdgeHandle find_free_incident_halfedge () const;
     HalfEdgeHandle find_free_incident_halfedge_in_range (HalfEdgeHandle he1, HalfEdgeHandle he2) const;

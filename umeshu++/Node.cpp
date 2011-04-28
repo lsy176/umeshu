@@ -36,36 +36,35 @@ HalfEdgeHandle Node::is_boundary() const
         return NULL;
     }
 
-    BOOST_ASSERT(false);
-    // TODO
-    
+    HalfEdgeHandle he_start = out_he();
+    HalfEdgeHandle he_iter = he_start;
+    do {
+        if (he_iter->is_boundary()) {
+            return he_iter;
+        }
+        he_iter = he_iter->pair()->next();
+    } while (he_iter != he_start);
+
     return NULL;
 }
 
 int Node::degree() const
 {
-    BOOST_ASSERT(false);
-    // TODO
-    return 0;
-}
-
-int Node::virtual_degree() const
-{
-    BOOST_ASSERT(false);
-    // TODO
-    return 0;
-}
-
-int Node::ideal_degree() const
-{
-    BOOST_ASSERT(false);
-    // TODO
-    return 0;
+    int d = 0;
+    if (not is_isolated()) {
+        HalfEdgeHandle he_start = out_he();
+        HalfEdgeHandle he_iter = he_start;
+        do {
+            ++d;
+            he_iter = he_iter->pair()->next();
+        } while (he_iter != he_start);
+    }
+    return d;
 }
 
 HalfEdgeHandle Node::find_free_incident_halfedge () const
 {
-    return find_free_incident_halfedge_in_range(out_he_->pair(), out_he_->pair());
+    return find_free_incident_halfedge_in_range(out_he()->pair(), out_he()->pair());
 }
 
 
