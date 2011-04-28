@@ -39,7 +39,7 @@ public:
     inline double y() const { return p_.y(); }
     inline double& y() { return p_.y(); }
     inline Point2 const& position() const { return p_; }
-//    inline Point2& position() { return p_; }
+    inline Point2& position() { return p_; }
     
     inline HalfEdgeHandle out_he() const { return out_he_; }
     inline HalfEdgeHandle& out_he() { return out_he_; }
