@@ -41,7 +41,16 @@ class Mesh : public boost::noncopyable {
 public:
     typedef enum {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH} Point2Location;
     typedef Kernel kernel_type;
-
+    typedef boost::unordered_set<NodeHandle> nodes;
+    typedef boost::unordered_set<EdgeHandle> edges;
+    typedef boost::unordered_set<FaceHandle> faces;
+    typedef typename nodes::iterator nodes_iterator;
+    typedef typename edges::iterator edges_iterator;
+    typedef typename faces::iterator faces_iterator;
+    typedef typename nodes::const_iterator const_nodes_iterator;
+    typedef typename edges::const_iterator const_edges_iterator;
+    typedef typename faces::const_iterator const_faces_iterator;
+    
     NodeHandle add_node (Point2 const& p);
     void remove_node (NodeHandle n);
 
@@ -61,6 +70,20 @@ public:
 
     double smallest_angle() const;
 
+    const_nodes_iterator nodes_begin() const { return nodes_.begin(); }
+    const_nodes_iterator nodes_end()   const { return nodes_.end(); }
+    const_edges_iterator edges_begin() const { return edges_.begin(); }
+    const_edges_iterator edges_end()   const { return edges_.end(); }
+    const_faces_iterator faces_begin() const { return faces_.begin(); }
+    const_faces_iterator faces_end()   const { return faces_.end(); }
+
+    nodes_iterator nodes_begin() { return nodes_.begin(); }
+    nodes_iterator nodes_end()   { return nodes_.end(); }
+    edges_iterator edges_begin() { return edges_.begin(); }
+    edges_iterator edges_end()   { return edges_.end(); }
+    faces_iterator faces_begin() { return faces_.begin(); }
+    faces_iterator faces_end()   { return faces_.end(); }
+
     size_t number_of_nodes () const { return nodes_.size(); }
     size_t number_of_edges () const { return edges_.size(); }
     size_t number_of_faces () const { return faces_.size(); }
@@ -70,13 +93,9 @@ private:
     void detach_edge (EdgeHandle e, NodeHandle n);
     bool make_adjacent (HalfEdgeHandle in, HalfEdgeHandle out);
 
-    typedef boost::unordered_set<NodeHandle> Nodes;
-    typedef boost::unordered_set<EdgeHandle> Edges;
-    typedef boost::unordered_set<FaceHandle> Faces;
-    
-    Nodes nodes_;
-    Edges edges_;
-    Faces faces_;
+    nodes nodes_;
+    edges edges_;
+    faces faces_;
     
     boost::object_pool<Node> node_pool_;
     boost::object_pool<Edge> edge_pool_;
