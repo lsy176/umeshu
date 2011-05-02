@@ -42,7 +42,11 @@ int main (int argc, const char * argv[])
     try {
         mesh m;
         triangulator tri;
-        tri.triangulate(Polygon::letter_a(), m);
+        // tri.triangulate(Polygon::coastline(), m);
+        tri.triangulate(Polygon::crack(), m);
+        // tri.triangulate(Polygon::kidney(), m);
+        // tri.triangulate(Polygon::letter_u(), m);
+        // tri.triangulate(Polygon::letter_a(), m);
         // tri.triangulate(Polygon::island(), m);
         // tri.triangulate(Polygon::square(1.0), m);
 
@@ -54,7 +58,7 @@ int main (int argc, const char * argv[])
         Postscript_stream ps2("mesh_2.eps", m.bounding_box());
         ps2 << m;
 
-        meshgen.refine(0.0001, 30);
+        meshgen.refine(0.001, 25);
         Postscript_stream ps3("mesh_3.eps", m.bounding_box());
         ps3 << m;
 
@@ -64,14 +68,14 @@ int main (int argc, const char * argv[])
         ps4 << m;
 
         smoother smooth;
-        smooth.smooth(m, 5);
+        smooth.smooth(m, 1);
         Postscript_stream ps5("mesh_5.eps", m.bounding_box());
         ps5 << m;
 
-        // code does not passes a debug assert:
-        // meshgen.refine(0.0001, 30);
-        // Postscript_stream ps6("mesh_6.eps", m.bounding_box());
-        // ps6 << m;
+        // code does not pass a debug assert:
+        meshgen.refine(0.0001000, 25);
+        Postscript_stream ps6("mesh_6.eps", m.bounding_box());
+        ps6 << m;
 
         // smooth.smooth(m, 5);
         // Postscript_stream ps7("mesh_7.eps", m.bounding_box());

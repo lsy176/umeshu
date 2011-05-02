@@ -33,7 +33,7 @@ class Face : public Identifiable
 {
 public:
     explicit Face(HalfEdgeHandle adj_edge)
-    : adj_edge_(adj_edge), area_(0.0)
+        : adj_edge_(adj_edge), area_(0.0)
     { this->compute_area<ExactAdaptiveKernel>(); }
 
     inline HalfEdgeHandle adjacent_he() const { return adj_edge_; }
