@@ -43,9 +43,9 @@ int main (int argc, const char * argv[])
         mesh m;
         triangulator tri;
         // tri.triangulate(Polygon::coastline(), m);
-        tri.triangulate(Polygon::crack(), m);
+        // tri.triangulate(Polygon::crack(), m);
         // tri.triangulate(Polygon::kidney(), m);
-        // tri.triangulate(Polygon::letter_u(), m);
+        tri.triangulate(Polygon::letter_u(), m);
         // tri.triangulate(Polygon::letter_a(), m);
         // tri.triangulate(Polygon::island(), m);
         // tri.triangulate(Polygon::square(1.0), m);

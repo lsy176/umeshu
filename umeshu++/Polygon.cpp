@@ -162,7 +162,6 @@ Polygon Polygon::letter_u()
 {
     Polygon poly;
 
-    poly.append_vertex(Point2(0,0));
     poly.append_vertex(Point2(0,0)); 
     poly.append_vertex(Point2(4,0));
     poly.append_vertex(Point2(4,1));
