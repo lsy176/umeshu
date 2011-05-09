@@ -30,9 +30,6 @@
 
 namespace umeshu {
 
-/* 1cm is this amount of Points */
-const float cm = 28.3464567;
-
 class Postscript_stream {    
 public:
     Postscript_stream (std::string const& filename, BoundingBox const& bb);
@@ -53,9 +50,9 @@ private:
     BoundingBox bb_;
     double fig_width_, fig_height_;
 
-    static const float default_fig_size;
-    static const float default_fig_margin;
-    static const float default_line_width;
+    static float const default_fig_size;
+    static float const default_fig_margin;
+    static float const default_line_width;
 };
 
 } // namespace umeshu

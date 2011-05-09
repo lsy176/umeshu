@@ -28,14 +28,12 @@
 
 namespace umeshu {
 
-/* default figure size is 10cm */
-const float Postscript_stream::default_fig_size = 10*cm;
+/* 1cm is this amount of PostScript points */
+const float cm = 28.3464567;
 
-/* default figure margin is 1mm */
-const float Postscript_stream::default_fig_margin = 0.1*cm;
-
-/* default line width is 0.1mm */
-const float Postscript_stream::default_line_width = 0.005*cm;
+float const Postscript_stream::default_fig_size = 10*cm;
+float const Postscript_stream::default_fig_margin = 0.1*cm;
+float const Postscript_stream::default_line_width = 0.005*cm;
 
 Postscript_stream::Postscript_stream (std::string const& filename, BoundingBox const& bb)
 : of_(filename.c_str()), bb_(bb)
