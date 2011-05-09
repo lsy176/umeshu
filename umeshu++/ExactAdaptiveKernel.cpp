@@ -23,9 +23,11 @@
 #include "ExactAdaptiveKernel.h"
 #include "Node.h"
 #include "Point2.h"
-#include "Predicates.h"
 
 #include <boost/assert.hpp>
+
+double orient2d(double const* pa, double const* pb, double const* pc);
+double incircle(double const* pa, double const* pb, double const* pc, double const* pd);
 
 namespace umeshu {
 

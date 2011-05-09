@@ -28,7 +28,6 @@
 #include "Face.h"
 #include "Node.h"
 #include "Postscript_ostream.h"
-#include "Predicates.h"
 
 #include <boost/assert.hpp>
 #include <boost/pool/object_pool.hpp>

@@ -24,7 +24,6 @@
 
 #include "Face.h"
 #include "Mesh.h"
-#include "Predicates.h"
 #include "Postscript_ostream.h"
 
 #include <boost/lexical_cast.hpp>

@@ -23,7 +23,6 @@
 #include "FastKernel.h"
 #include "Node.h"
 #include "Point2.h"
-#include "Predicates.h"
 
 #include <boost/assert.hpp>
 
