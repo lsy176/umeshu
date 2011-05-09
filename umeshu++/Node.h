@@ -28,6 +28,8 @@
 
 #include <iostream>
 
+namespace umeshu {
+
 class Node : public Identifiable
 {
 public:
@@ -67,5 +69,7 @@ inline double distance(NodeHandle n1, NodeHandle n2)
 {
     return std::sqrt(distance_squared(n1, n2));
 }
+
+} // namespace umeshu
 
 #endif // __NODE_H_INCLUDED__

@@ -29,6 +29,8 @@
 
 #include <boost/assert.hpp>
 
+namespace umeshu {
+
 class Face : public Identifiable
 {
 public:
@@ -149,5 +151,7 @@ double Face::circumradius() const
     this->vertices(p1, p2, p3);
     return Kernel::circumradius(p1, p2, p3);
 }
+
+} // namespace umeshu
 
 #endif // __FACE_H_INCLUDED__

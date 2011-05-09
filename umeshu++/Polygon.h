@@ -6,6 +6,8 @@
 
 #include <vector>
 
+namespace umeshu {
+
 class Polygon
 {
 public:
@@ -33,5 +35,7 @@ public:
 private:
     std::vector<Point2> vertices_;
 };
+
+} // namespace umeshu
 
 #endif /* __POLYGON_H_INCLUDED__ */

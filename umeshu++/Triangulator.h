@@ -9,6 +9,8 @@
 #include <boost/utility.hpp>
 #include <boost/foreach.hpp>
 
+namespace umeshu {
+
 template <typename Mesh>
 class Triangulator
 {
@@ -166,5 +168,7 @@ bool Triangulator<Mesh>::halfedge_origin_is_ear(HalfEdgeHandle he) const
     }
     return true;
 }
+
+} // namespace umeshu
 
 #endif /* __TRIANGULATOR_H_INCLUDED__ */

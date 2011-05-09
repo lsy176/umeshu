@@ -25,6 +25,8 @@
 
 #include <iostream>
 
+namespace umeshu {
+
 HalfEdge::HalfEdge(NodeHandle n, EdgeHandle e)
 : pair_(this), next_(this), prev_(this), edge_(e), origin_(n), face_(NULL)
 {}
@@ -58,7 +60,7 @@ Point2 Edge::midpoint() const
 	Point2 p1, p2;
 	this->vertices(p1, p2);
 	if (bseginfo_ == NULL) {
-		return ::midpoint(p1, p2);
+		return umeshu::midpoint(p1, p2);
 	} else {
 		return bseginfo_->midpoint(p1, p2);
 	}
@@ -71,3 +73,6 @@ std::ostream& operator<<(std::ostream& os, Edge const& e)
     os << "    " << e.he2_;
     return os;
 }
+
+} // namespace umeshu
+

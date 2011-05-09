@@ -1,5 +1,7 @@
 #include "Polygon.h"
 
+namespace umeshu {
+
 BoundingBox Polygon::bounding_box() const
 {
     BoundingBox bb;
@@ -11261,3 +11263,5 @@ Polygon Polygon::coastline()
 
         return poly;
 }
+
+} // namespace umeshu

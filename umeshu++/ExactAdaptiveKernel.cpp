@@ -27,6 +27,7 @@
 
 #include <boost/assert.hpp>
 
+namespace umeshu {
 
 Oriented_side ExactAdaptiveKernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
 {
@@ -114,3 +115,5 @@ Point2 ExactAdaptiveKernel::offcenter(Point2 const& p1, Point2 const& p2, Point2
     
     return Point2(p1.x()+dx, p1.y()+dy);
 }
+
+} // namespace umeshu

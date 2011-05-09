@@ -24,6 +24,8 @@
 
 #include <boost/assert.hpp>
 
+namespace umeshu {
+
 std::ostream& operator<<(std::ostream& os, Node const& n)
 {
     os << "Node " << &n << ": position=[" << n.x() << "," << n.y() << "], he=" << n.out_he() << std::endl;
@@ -85,3 +87,5 @@ HalfEdgeHandle Node::find_free_incident_halfedge_in_range (HalfEdgeHandle he1, H
         return NULL;
     }
 }
+
+} // namespace umeshu

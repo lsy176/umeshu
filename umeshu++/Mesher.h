@@ -31,6 +31,8 @@
 #include <stack>
 #include <set>
 
+namespace umeshu {
+
 template <typename Mesh>
 class Mesher {
 public:
@@ -418,7 +420,7 @@ bool Mesher<Mesh>::split_permitted (HalfEdgeHandle he, double d)
         return true;
     }
 
-    double ll = ::distance(p1, p3);
+    double ll = umeshu::distance(p1, p3);
     double phi_min = std::acos((l*l + other_l*other_l - ll*ll)/(2.0*l*other_l));
     double r_min = l*std::sin(phi_min/2.0);
     if (r_min > d) {
@@ -590,5 +592,6 @@ FaceHandle Mesher<Mesh>::get_bad_face () const
     }
 }
 
+} // namespace umeshu
 
 #endif // __MESHER_H_INCLUDED__

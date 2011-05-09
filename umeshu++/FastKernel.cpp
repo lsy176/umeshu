@@ -27,6 +27,8 @@
 
 #include <boost/assert.hpp>
 
+namespace umeshu {
+
 Oriented_side FastKernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
 {
     double r = FastKernel::orient2d(pa, pb, test);
@@ -112,3 +114,6 @@ Point2 FastKernel::offcenter(Point2 const& p1, Point2 const& p2, Point2 const& p
     
     return Point2(p1.x()+dx, p1.y()+dy);
 }
+
+} // namespace umeshu
+

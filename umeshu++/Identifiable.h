@@ -22,6 +22,8 @@
 #ifndef __IDENTIFIABLE_H_INCLUDED__
 #define __IDENTIFIABLE_H_INCLUDED__
 
+namespace umeshu {
+
 class Identifiable {
 public:
     Identifiable() : id_(0) {}
@@ -33,5 +35,7 @@ public:
 private:
     int id_;
 };
+
+} // namespace umeshu
 
 #endif // __IDENTIFIABLE_H_INCLUDED__

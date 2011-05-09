@@ -27,6 +27,8 @@
 
 #include <iosfwd>
 
+namespace umeshu {
+
 class Point2
     : boost::additive< Point2
     , boost::multiplicative< Point2, double
@@ -94,5 +96,6 @@ void triangle_angles (Point2 const& p1, Point2 const& p2, Point2 const& p3, doub
 Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3);
 Point2 midpoint (Point2 const& p1, Point2 const& p2);
 
-#endif // __POINT_H_INCLUDED__
+} // namespace umeshu
 
+#endif // __POINT_H_INCLUDED__

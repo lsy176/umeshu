@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+namespace umeshu {
+
 template<typename Mesh>
 class Relaxer
 {
@@ -142,5 +144,7 @@ int Relaxer<Mesh>::edge_relaxation_index(EdgeHandle edge) const
 
     return virtual_degree(n1) + virtual_degree(n2) - virtual_degree(n3) - virtual_degree(n4);
 }
+
+} // namespace umeshu
 
 #endif /* __RELAXER_H_INCLUDED__ */

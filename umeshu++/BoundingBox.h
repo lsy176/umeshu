@@ -26,6 +26,8 @@
 
 #include <iosfwd>
 
+namespace umeshu {
+
 class BoundingBox {
 public:
     BoundingBox();
@@ -44,5 +46,7 @@ private:
 };
 
 std::ostream& operator<< (std::ostream& os, BoundingBox const& bb);
+
+} // namespace umeshu
 
 #endif // __BOUNDING_BOX_H_INCLUDED__

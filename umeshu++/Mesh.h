@@ -36,6 +36,8 @@
 #include <boost/utility.hpp>
 #include <boost/foreach.hpp>
 
+namespace umeshu {
+
 template <class Kernel>
 class Mesh : public boost::noncopyable {
 public:
@@ -475,5 +477,7 @@ void locate_point(Point2 const& p, FaceHandle start_face, typename Mesh<Kernel>:
         }
     }
 }
+
+} // namespace umeshu
 
 #endif // __MESH_H_INCLUDED__

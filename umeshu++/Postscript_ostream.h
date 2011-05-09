@@ -28,6 +28,8 @@
 #include <fstream>
 #include <string>
 
+namespace umeshu {
+
 /* 1cm is this amount of Points */
 const float cm = 28.3464567;
 
@@ -55,5 +57,7 @@ private:
     static const float default_fig_margin;
     static const float default_line_width;
 };
+
+} // namespace umeshu
 
 #endif // __POSTSCRIPT_STREAM_H_INCLUDED__

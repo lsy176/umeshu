@@ -22,6 +22,8 @@
 #include "BoundarySegment.h"
 #include "FastKernel.h"
 
+namespace umeshu {
+
 Point2 LineBoundarySegment::midpoint( const Point2& p1, const Point2& p2 )
 {
     return Point2(0.5*(p1.x()+p2.x()), 0.5*(p1.y()+p2.y()));
@@ -45,3 +47,4 @@ Point2 CircleBoundarySegment::midpoint(Point2 const& p1, Point2 const& p2)
     return p;
 }
 
+} // namespace umeshu

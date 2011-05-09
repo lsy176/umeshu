@@ -25,6 +25,8 @@
 #include <limits>
 #include <ostream>
 
+namespace umeshu {
+
 std::ostream& operator<<(std::ostream& os, Point2 const& p)
 {
     os.precision(std::numeric_limits<double>::digits10);
@@ -62,3 +64,4 @@ Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3)
     return Point2(one_third*(p1.x()+p2.x()+p3.x()),one_third*(p1.y()+p2.y()+p3.y()));
 }
 
+} // namespace umeshu

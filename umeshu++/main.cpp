@@ -31,6 +31,8 @@
 #include "Smoother.h"
 #include "Triangulator.h"
 
+using namespace umeshu;
+
 typedef Mesh<ExactAdaptiveKernel> mesh;
 typedef Triangulator<mesh> triangulator;
 typedef Mesher<mesh> mesher;

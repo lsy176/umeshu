@@ -1,6 +1,8 @@
 #ifndef __SMOOTHER_H_INCLUDED__
 #define __SMOOTHER_H_INCLUDED__ 
 
+namespace umeshu {
+
 template<typename Mesh>
 class Smoother
 {
@@ -41,5 +43,7 @@ void Smoother<Mesh>::smooth_once(Mesh &mesh)
         node->position() = new_pos;
     }
 }
+
+} // namespace umeshu
 
 #endif /* __SMOOTHER_H_INCLUDED__ */

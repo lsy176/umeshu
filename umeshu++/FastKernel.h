@@ -24,6 +24,8 @@
 
 #include "Mesh_fwd.h"
 
+namespace umeshu {
+
 class FastKernel {
 public:
     static Oriented_side oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test);
@@ -63,5 +65,7 @@ private:
         return alift * bcdet + blift * cadet + clift * abdet;
     }
 };
+
+} // namespace umeshu
 
 #endif /* __FASTKERNEL_H_INCLUDED__ */

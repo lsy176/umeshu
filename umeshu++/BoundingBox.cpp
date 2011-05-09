@@ -24,6 +24,8 @@
 #include <ostream>
 #include <limits>
 
+namespace umeshu {
+
 BoundingBox::BoundingBox()
 : ll_(std::numeric_limits<double>::max(),std::numeric_limits<double>::max()),
   ur_(-std::numeric_limits<double>::max(),-std::numeric_limits<double>::max())
@@ -57,3 +59,5 @@ std::ostream& operator<< (std::ostream& os, BoundingBox const& bb)
        << "              height: " << bb.height() << std::endl;
     return os;
 }
+
+} // namespace umeshu

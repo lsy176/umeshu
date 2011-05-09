@@ -29,6 +29,8 @@
 
 #include <iosfwd>
 
+namespace umeshu {
+
 class HalfEdge
 {
 public:
@@ -160,5 +162,7 @@ inline void Edge::vertices(Point2& p1, Point2& p2) const
 {
     he1()->vertices(p1, p2);
 }
+
+} // namespace umeshu
 
 #endif // __EDGE_H_INCLUDED__

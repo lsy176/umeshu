@@ -24,6 +24,8 @@
 
 #include "Point2.h"
 
+namespace umeshu {
+
 class BoundarySegment
 {
 public:
@@ -54,5 +56,7 @@ private:
     Point2 center_;
     double radius_;
 };
+
+} // namespace umeshu
 
 #endif // __BOUNDARY_SEGMENT_H_INCLUDED__

@@ -26,6 +26,8 @@
 
 #include <cmath>
 
+namespace umeshu {
+
 /* default figure size is 10cm */
 const float Postscript_stream::default_fig_size = 10*cm;
 
@@ -137,3 +139,5 @@ void Postscript_stream::setgray(double g)
 {
     of_ << g << " setgray" << std::endl;    
 }
+
+} // namespace umeshu

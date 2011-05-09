@@ -23,6 +23,8 @@
 #include "Face.h"
 #include "Node.h"
 
+namespace umeshu {
+
 bool compare_faces::operator() (FaceHandle f1, FaceHandle f2) const
 {
     double s1 = f1->shortest_edge_length();
@@ -40,18 +42,18 @@ void Face::edge_lengths(double& el1, double& el2, double& el3) const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    el1 = ::distance(p1, p2);
-    el2 = ::distance(p2, p3);
-    el3 = ::distance(p3, p1);
+    el1 = umeshu::distance(p1, p2);
+    el2 = umeshu::distance(p2, p3);
+    el3 = umeshu::distance(p3, p1);
 }
 
 void Face::edge_lengths_squared(double& el1, double& el2, double& el3) const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    el1 = ::distance_squared(p1, p2);
-    el2 = ::distance_squared(p2, p3);
-    el3 = ::distance_squared(p3, p1);
+    el1 = umeshu::distance_squared(p1, p2);
+    el2 = umeshu::distance_squared(p2, p3);
+    el3 = umeshu::distance_squared(p3, p1);
 }
 
 HalfEdgeHandle Face::longest_edge(double *l) const
@@ -130,7 +132,7 @@ void Face::angles(double& a1, double& a2, double& a3) const
 {    
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    ::triangle_angles(p1, p2, p3, a1, a2, a3);
+    umeshu::triangle_angles(p1, p2, p3, a1, a2, a3);
 }
 
 double Face::minimum_angle() const
@@ -151,7 +153,7 @@ Point2 Face::barycenter() const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    return ::barycenter(p1, p2, p3);
+    return umeshu::barycenter(p1, p2, p3);
 }
 
 bool Face::is_restricted() const
@@ -195,4 +197,6 @@ std::ostream& operator<< (std::ostream& os, Face const& f)
     os << "Face " << &f << ": " << p1 << p2 << p3;
     return os;
 }
+
+} // namespace umeshu
 

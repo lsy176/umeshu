@@ -22,6 +22,8 @@
 #ifndef __MESH_FWD_H_INCLUDED__
 #define __MESH_FWD_H_INCLUDED__
 
+namespace umeshu {
+
 class Point2;
 
 class Node;
@@ -36,5 +38,7 @@ class Face;
 typedef Face* FaceHandle;
 
 typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
+
+} // namespace umeshu
 
 #endif // __MESH_FWD_H_INCLUDED__

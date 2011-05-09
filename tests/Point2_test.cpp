@@ -4,6 +4,8 @@
 
 #include "Point2.h"
 
+using namespace umeshu;
+
 BOOST_AUTO_TEST_CASE(construction_and_access)
 {
     Point2 p1, p2(0.0, 0.0), p3(1.0, 2.0), p4(-10.0, -30.0);
