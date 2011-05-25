@@ -19,34 +19,45 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __BOUNDING_BOX_H_INCLUDED__
-#define __BOUNDING_BOX_H_INCLUDED__
+#include "Bounding_box.h"
 
-#include "Point2.h"
-
-#include <iosfwd>
+#include <ostream>
+#include <limits>
 
 namespace umeshu {
 
-class BoundingBox {
-public:
-    BoundingBox();
-    BoundingBox(Point2 const& ll, Point2 const& ur);
-    
-    Point2 const& ll() const { return ll_; }
-    Point2 const& ur() const { return ur_; }
-    
-    double width() const { return ur_.x() - ll_.x(); }
-    double height() const { return ur_.y() - ll_.y(); }
-    
-    void include(Point2 const& p);
-    
-private:
-    Point2 ll_, ur_;
-};
+Bounding_box::Bounding_box()
+: ll_(std::numeric_limits<double>::max(),std::numeric_limits<double>::max()),
+  ur_(-std::numeric_limits<double>::max(),-std::numeric_limits<double>::max())
+{}
 
-std::ostream& operator<< (std::ostream& os, BoundingBox const& bb);
+Bounding_box::Bounding_box(Point2 const& p1, Point2 const& p2)
+: ll_(std::numeric_limits<double>::max(),std::numeric_limits<double>::max()),
+  ur_(-std::numeric_limits<double>::max(),-std::numeric_limits<double>::max())
+{
+    include(p1);
+    include(p2);
+}
+
+void Bounding_box::include(Point2 const& p)
+{
+    if (p.x() < ll_.x())
+        ll_.x() = p.x();
+    if (p.x() > ur_.x())
+        ur_.x() = p.x();
+    if (p.y() < ll_.y())
+        ll_.y() = p.y();
+    if (p.y() > ur_.y())
+        ur_.y() = p.y();
+}
+
+std::ostream& operator<< (std::ostream& os, Bounding_box const& bb)
+{
+    os << "Bounding box: lower left:  " << bb.ll() << std::endl
+       << "              upper right: " << bb.ur() << std::endl
+       << "              width: " << bb.width() << std::endl
+       << "              height: " << bb.height() << std::endl;
+    return os;
+}
 
 } // namespace umeshu
-
-#endif // __BOUNDING_BOX_H_INCLUDED__

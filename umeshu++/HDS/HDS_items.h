@@ -19,23 +19,38 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__
-#define __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__
+#ifndef __HDS_ITEMS_H_INCLUDED__
+#define __HDS_ITEMS_H_INCLUDED__ 
 
-#include "Mesh_fwd.h"
+#include "../Point2.h"
+#include "HDS_node_base.h"
+#include "HDS_halfedge_base.h"
+#include "HDS_edge_base.h"
+#include "HDS_face_base.h"
 
 namespace umeshu {
+namespace hds {
 
-class ExactAdaptiveKernel {
-public:
-    static Oriented_side oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test);
-    static Oriented_side oriented_side (HalfEdgeHandle he, Point2 const& test);
-    static Oriented_side oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test);
-    static double signed_area (Point2 const& pa, Point2 const& pb, Point2 const& pc);
-    static Point2 circumcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3);
-    static Point2 offcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant);
+struct HDS_items {
+    template <typename HDS>
+    struct Node_wrapper {
+        typedef HDS_node_base<HDS> Node;
+    };
+    template <typename HDS>
+    struct Halfedge_wrapper {
+        typedef HDS_halfedge_base<HDS> Halfedge;  
+    };
+    template <typename HDS>
+    struct Edge_wrapper {
+        typedef HDS_edge_base<HDS> Edge;  
+    };
+    template <typename HDS>
+    struct Face_wrapper {
+        typedef HDS_face_base<HDS> Face;  
+    };
 };
 
-}
+} // namespace hds
+} // namespace umeshu
 
-#endif /* __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__ */
+#endif /* __HDS_ITEMS_H_INCLUDED__ */

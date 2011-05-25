@@ -23,51 +23,119 @@
 #define __NODE_H_INCLUDED__
 
 #include "Identifiable.h"
-#include "Mesh_fwd.h"
 #include "Point2.h"
 
 #include <iostream>
 
 namespace umeshu {
 
+template <typename Mesh>
 class Node : public Identifiable
 {
 public:
-    Node(double x, double y) : p_(x,y), out_he_(NULL) {}
-    explicit Node(Point2 const& p) : p_(p), out_he_(NULL) {}
+    typedef typename Mesh::Halfedge_handle       Halfedge_handle;
+    typedef typename Mesh::Halfedge_const_handle Halfedge_const_handle;
 
-    inline double x() const { return p_.x(); }
-    inline double& x() { return p_.x(); }
-    inline double y() const { return p_.y(); }
-    inline double& y() { return p_.y(); }
-    inline Point2 const& position() const { return p_; }
-    inline Point2& position() { return p_; }
+             Node(double x, double y) : p_(x,y), out_he_() {}
+    explicit Node(Point2 const& p)    : p_(p),   out_he_() {}
+
+    double& x()       { return p_.x(); }
+    double  x() const { return p_.x(); }
+    double& y()       { return p_.y(); }
+    double  y() const { return p_.y(); }
+
+    Point2&       position()       { return p_; }
+    Point2 const& position() const { return p_; }
     
-    inline HalfEdgeHandle out_he() const { return out_he_; }
-    inline HalfEdgeHandle& out_he() { return out_he_; }
+    Halfedge_handle        halfedge()       { return out_he_; }
+    Halfedge_const_handle  halfedge() const { return out_he_; }
+
+    void set_halfedge(Halfedge_handle he) { out_he_ = he; }
     
-    inline bool is_isolated() const { return out_he_ == NULL; }
-    HalfEdgeHandle is_boundary() const;
+    bool is_isolated() const { return out_he_ == Halfedge_handle(); }
+    bool is_boundary() const;
+
     int degree() const;
     
-    HalfEdgeHandle find_free_incident_halfedge () const;
-    HalfEdgeHandle find_free_incident_halfedge_in_range (HalfEdgeHandle he1, HalfEdgeHandle he2) const;
+    Halfedge_handle find_free_incident_halfedge ();
+    Halfedge_handle find_free_incident_halfedge_in_range (Halfedge_handle he1, Halfedge_handle he2);
+
+    friend std::ostream& operator<< (std::ostream& os, Node<Mesh> const& n) {
+        os << n.position();
+        return os;
+    }
     
 private:
     Point2 p_;
-    HalfEdgeHandle out_he_;
-
-    friend std::ostream& operator<<(std::ostream& os, Node const& n);
+    Halfedge_handle out_he_;
 };
 
-inline double distance_squared(NodeHandle n1, NodeHandle n2)
+template <typename Mesh>
+inline double distance_squared(typename Mesh::Node_handle n1, typename Mesh::Node_handle n2)
 {
     return distance_squared(n1->position(), n2->position());
 }
 
-inline double distance(NodeHandle n1, NodeHandle n2)
+template <typename Mesh>
+inline double distance(typename Mesh::Node_handle n1, typename Mesh::Node_handle n2)
 {
     return std::sqrt(distance_squared(n1, n2));
+}
+
+template <typename Mesh>
+bool Node<Mesh>::is_boundary() const
+{
+    if (is_isolated()) {
+        return false;
+    }
+
+    Halfedge_handle he_start = halfedge();
+    Halfedge_handle he_iter  = he_start;
+    do {
+        if (he_iter->is_boundary()) {
+            return true;
+        }
+        he_iter = he_iter->pair()->next();
+    } while (he_iter != he_start);
+
+    return false;
+}
+
+template <typename Mesh>
+int Node<Mesh>::degree() const
+{
+    int d = 0;
+    if (not is_isolated()) {
+        Halfedge_const_handle he_start = halfedge();
+        Halfedge_const_handle he_iter = he_start;
+        do {
+            ++d;
+            he_iter = he_iter->pair()->next();
+        } while (he_iter != he_start);
+    }
+    return d;
+}
+
+template <typename Mesh>
+typename Mesh::Halfedge_handle Node<Mesh>::find_free_incident_halfedge ()
+{
+    return find_free_incident_halfedge_in_range(halfedge()->pair(), halfedge()->pair());
+}
+
+template <typename Mesh>
+typename Mesh::Halfedge_handle Node<Mesh>::find_free_incident_halfedge_in_range (Halfedge_handle he1, Halfedge_handle he2)
+{
+    Halfedge_handle result = he1;
+    while (not result->is_boundary()) {
+        result = result->next()->pair();
+        if (result == he2)
+            break;
+    }
+    if (result->is_boundary()) {
+        return result;
+    } else {
+        return Halfedge_handle();
+    }
 }
 
 } // namespace umeshu

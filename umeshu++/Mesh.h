@@ -26,420 +26,407 @@
 #include "BoundingBox.h"
 #include "Edge.h"
 #include "Face.h"
+#include "Mesh_storage.h"
 #include "Node.h"
 #include "Postscript_ostream.h"
 
 #include <boost/assert.hpp>
-#include <boost/pool/object_pool.hpp>
-#include <boost/unordered_set.hpp>
 #include <boost/utility.hpp>
 #include <boost/foreach.hpp>
 
 namespace umeshu {
 
-template <class Kernel>
+template <typename Kernel>
 class Mesh : public boost::noncopyable {
 public:
-    typedef enum {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH} Point2Location;
-    typedef Kernel kernel_type;
-    typedef boost::unordered_set<NodeHandle> nodes;
-    typedef boost::unordered_set<EdgeHandle> edges;
-    typedef boost::unordered_set<FaceHandle> faces;
-    typedef typename nodes::iterator nodes_iterator;
-    typedef typename edges::iterator edges_iterator;
-    typedef typename faces::iterator faces_iterator;
-    typedef typename nodes::const_iterator const_nodes_iterator;
-    typedef typename edges::const_iterator const_edges_iterator;
-    typedef typename faces::const_iterator const_faces_iterator;
+    typedef enum {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH} Point2_location;
+
+    typedef Kernel                                  Kernel_type;
+    typedef Mesh<Kernel_type>                       Self;
+    typedef Mesh_storage_list<Self>                 Storage;
+
+    typedef typename Storage::Node_handle           Node_handle;
+    typedef typename Storage::Edge_handle           Edge_handle;
+    typedef Halfedge<Self>*                         Halfedge_handle;
+    typedef typename Storage::Face_handle           Face_handle;
+
+    typedef typename Storage::Node_const_handle     Node_const_handle;
+    typedef typename Storage::Edge_const_handle     Edge_const_handle;
+    typedef Halfedge<Self> const*                   Halfedge_const_handle;
+    typedef typename Storage::Face_const_handle     Face_const_handle;
+
+    typedef typename Storage::Node_iterator         Node_iterator;
+    typedef typename Storage::Edge_iterator         Edge_iterator;
+    typedef typename Storage::Face_iterator         Face_iterator;
+    typedef typename Storage::Node_const_iterator   Node_const_iterator;
+    typedef typename Storage::Edge_const_iterator   Edge_const_iterator;
+    typedef typename Storage::Face_const_iterator   Face_const_iterator;
     
-    NodeHandle add_node (Point2 const& p);
-    void remove_node (NodeHandle n);
+    Node_handle add_node (Point2 const& p) { return storage_.insert(Node<Self>(p)); }
+    void        remove_node (Node_handle n);
 
-    EdgeHandle add_edge (NodeHandle n1, NodeHandle n2, BoundarySegment *bseginfo);
-    void remove_edge (EdgeHandle e);
-    NodeHandle split_edge (EdgeHandle e);
-    NodeHandle split_edge (EdgeHandle e, Point2 const& p);
-    EdgeHandle swap_edge (EdgeHandle e);
+    Edge_handle add_edge (Node_handle n1, Node_handle n2, BoundarySegment *bseginfo) {
+        BOOST_ASSERT(n1 != n2);
+        Edge_handle e = storage_.insert(Edge<Self>(n1, n2, bseginfo));
+        e->set_edge_handle(e);
+        this->attach_edge(e, n1);
+        this->attach_edge(e, n2);
+        return e;
+    }
 
-    FaceHandle add_face (HalfEdgeHandle he1, HalfEdgeHandle he2, HalfEdgeHandle he3);
-    void remove_face (FaceHandle f);
-    NodeHandle split_face (FaceHandle f, Point2 const& p);
+    void remove_edge (Edge_handle e);
+
+    Node_handle split_edge (Edge_handle e) {
+        return this->split_edge(e, e->midpoint());
+    }
+
+    Node_handle split_edge (Edge_handle e, Point2 const& p) {
+        Halfedge_handle he1 = e->he1();
+        Halfedge_handle he2 = e->he2();
+
+        Halfedge_handle he1n, he1p;
+        if (not he1->is_boundary()) {
+            he1n = he1->next();
+            he1p = he1->prev();
+        }
+
+        Halfedge_handle he2n, he2p;
+        if (not he2->is_boundary()) {
+            he2n = he2->next();
+            he2p = he2->prev();
+        }
+
+        Node_handle n1 = he1->origin();
+        Node_handle n2 = he2->origin();
+        BoundarySegment *bseginfo = e->boundary_info();
+        this->remove_edge(e);
+        Node_handle n  = this->add_node(p);
+        Edge_handle e1 = this->add_edge(n1, n, bseginfo);
+        Edge_handle e2 = this->add_edge(n2, n, bseginfo);
+        if (not he1->is_boundary()) {
+            Edge_handle e3 = this->add_edge(he1p->origin(), n, NULL);
+            this->add_face(he1p, e1->halfedge_with_origin(n1), e3->halfedge_with_origin(n));
+            this->add_face(he1n, e3->halfedge_with_origin(n)->pair(), e2->halfedge_with_origin(n));
+        }
+        if (not he2->is_boundary()) {
+            Edge_handle e4 = this->add_edge(he2p->origin(), n, NULL);
+            this->add_face(he2p, e2->halfedge_with_origin(n2), e4->halfedge_with_origin(n));
+            this->add_face(he2n, e4->halfedge_with_origin(n)->pair(), e1->halfedge_with_origin(n));
+        }
+
+        return n;
+    }
+
+    Edge_handle swap_edge (Edge_handle e) {   
+        BOOST_ASSERT(not e->is_boundary());
+
+        Halfedge_handle he1 = e->he1()->next();
+        Halfedge_handle he2 = e->he1()->prev();
+        Halfedge_handle he3 = e->he2()->next();
+        Halfedge_handle he4 = e->he2()->prev();
+        Node_handle n1 = he2->origin();
+        Node_handle n2 = he4->origin();
+
+        this->remove_edge(e);
+        Edge_handle new_edge = this->add_edge(n1, n2, NULL);
+        this->add_face(he2, he3, new_edge->halfedge_with_origin(n2));
+        this->add_face(he4, he1, new_edge->halfedge_with_origin(n1));
+
+        return new_edge;
+    }
+
+    Face_handle add_face (Halfedge_handle he1, Halfedge_handle he2, Halfedge_handle he3) {
+        if (not(he1->is_boundary() &&
+                he2->is_boundary() &&
+                he3->is_boundary())) {
+            std::clog << "Mesh<Kernel>::add_face: half-edges are not free, cannot add face\n";
+            return Face_handle();
+        }
+
+        if (not(he1->pair()->origin() == he2->origin() &&
+                he2->pair()->origin() == he3->origin() &&
+                he3->pair()->origin() == he1->origin()))
+        {
+            std::clog << "Mesh<Kernel>::add_face: half-edges do not form a chain, cannot add face\n";
+            return Face_handle();
+        }
+
+        if (not(make_adjacent(he1, he2) &&
+                make_adjacent(he2, he3) &&
+                make_adjacent(he3, he1)))
+        {
+            std::clog << "Mesh<Kernel>::add_face: attempting to create non-manifold mesh, cannot add face\n";
+            return Face_handle();
+        }
+
+        Face_handle f = storage_.insert(Face<Self>(he1));
+        he1->face() = he2->face() = he3->face() = f;
+        return f;
+    }
+
+    void remove_face (Face_handle f);
+
+    Node_handle split_face  (Face_handle f, Point2 const& p) {
+        Halfedge_handle he1 = f->halfedge();
+        Halfedge_handle he2 = he1->next();
+        Halfedge_handle he3 = he2->next();
+
+        this->remove_face(f);
+
+        Node_handle n  = this->add_node(p);
+        Edge_handle e1 = this->add_edge(n, he1->origin(), NULL);
+        Edge_handle e2 = this->add_edge(n, he2->origin(), NULL);
+        Edge_handle e3 = this->add_edge(n, he3->origin(), NULL);
+        this->add_face(he1, e2->halfedge_with_origin(n)->pair(), e1->halfedge_with_origin(n));
+        this->add_face(he2, e3->halfedge_with_origin(n)->pair(), e2->halfedge_with_origin(n));
+        this->add_face(he3, e1->halfedge_with_origin(n)->pair(), e3->halfedge_with_origin(n));
+
+        return n;
+    }
 
     BoundingBox bounding_box () const;
 
-    HalfEdgeHandle boundary_halfedge() const;
+    Halfedge_handle boundary_halfedge() const {
+        for (Edge_iterator iter = edges_begin(); iter != edges_end(); ++iter) {
+            if (iter->he1()->is_boundary()) return iter->he1();
+            if (iter->he2()->is_boundary()) return iter->he2();
+        }
+        return Halfedge_handle();
+    }
 
     double smallest_angle() const;
 
-    const_nodes_iterator nodes_begin() const { return nodes_.begin(); }
-    const_nodes_iterator nodes_end()   const { return nodes_.end(); }
-    const_edges_iterator edges_begin() const { return edges_.begin(); }
-    const_edges_iterator edges_end()   const { return edges_.end(); }
-    const_faces_iterator faces_begin() const { return faces_.begin(); }
-    const_faces_iterator faces_end()   const { return faces_.end(); }
+    Node_const_iterator nodes_begin() const { return storage_.nodes_begin(); }
+    Node_const_iterator nodes_end()   const { return storage_.nodes_end(); }
+    Edge_const_iterator edges_begin() const { return storage_.edges_begin(); }
+    Edge_const_iterator edges_end()   const { return storage_.edges_end(); }
+    Face_const_iterator faces_begin() const { return storage_.faces_begin(); }
+    Face_const_iterator faces_end()   const { return storage_.faces_end(); }
+    Node_iterator       nodes_begin()       { return storage_.nodes_begin(); }
+    Node_iterator       nodes_end()         { return storage_.nodes_end(); }
+    Edge_iterator       edges_begin()       { return storage_.edges_begin(); }
+    Edge_iterator       edges_end()         { return storage_.edges_end(); }
+    Face_iterator       faces_begin()       { return storage_.faces_begin(); }
+    Face_iterator       faces_end()         { return storage_.faces_end(); }
 
-    nodes_iterator nodes_begin() { return nodes_.begin(); }
-    nodes_iterator nodes_end()   { return nodes_.end(); }
-    edges_iterator edges_begin() { return edges_.begin(); }
-    edges_iterator edges_end()   { return edges_.end(); }
-    faces_iterator faces_begin() { return faces_.begin(); }
-    faces_iterator faces_end()   { return faces_.end(); }
+    size_t number_of_nodes () const { return storage_.nodes_size(); }
+    size_t number_of_edges () const { return storage_.edges_size(); }
+    size_t number_of_faces () const { return storage_.faces_size(); }
 
-    size_t number_of_nodes () const { return nodes_.size(); }
-    size_t number_of_edges () const { return edges_.size(); }
-    size_t number_of_faces () const { return faces_.size(); }
-
+    void debug_print(std::ostream& os);
 private:
-    void attach_edge (EdgeHandle e, NodeHandle n);
-    void detach_edge (EdgeHandle e, NodeHandle n);
-    bool make_adjacent (HalfEdgeHandle in, HalfEdgeHandle out);
+    void attach_edge   (Edge_handle e, Node_handle n);
+    void detach_edge   (Edge_handle e, Node_handle n);
+    bool make_adjacent (Halfedge_handle in, Halfedge_handle out);
 
-    nodes nodes_;
-    edges edges_;
-    faces faces_;
-    
-    boost::object_pool<Node> node_pool_;
-    boost::object_pool<Edge> edge_pool_;
-    boost::object_pool<Face> face_pool_;
-    
-    template <typename K> friend Postscript_stream& operator<< (Postscript_stream& ps, Mesh<K> const& m);
-    
-    template<typename> friend class Mesher;
-    template<typename> friend class Triangulator;
+    template <typename> friend class Mesher;
+    template <typename> friend class Triangulator;
+
+    Mesh_storage_list<Self> storage_;
 };
 
 template <typename Kernel>
-double Mesh<Kernel>::smallest_angle() const
+void Mesh<Kernel>::debug_print(std::ostream& os)
 {
-    double sa = std::numeric_limits<double>::max();
-    BOOST_FOREACH(FaceHandle f, faces_) {
-        double a = f->minimum_angle();
-        if (a < sa) {
-            sa = a;
-        }
+    os << "Nodes:\n";
+    Node_const_iterator niter = nodes_begin();
+    for(; niter != nodes_end(); ++niter) {
+        os << &(*niter) << ": " << niter->position() << std::endl;
     }
-    return radians_to_degrees(sa);
+    os << "Edges:\n";
+    Edge_const_iterator eiter = edges_begin();
+    for(; eiter != edges_end(); ++eiter) {
+        os << &(*eiter) << ": " << eiter->he1()->origin()->position() << "--"
+                                << eiter->he2()->origin()->position() << std::endl;
+    }
+    os << "Faces:\n";
+    Face_const_iterator fiter = faces_begin();
+    for(; fiter != faces_end(); ++fiter) {
+        Point2 p1, p2, p3;
+        fiter->vertices(p1, p2, p3);
+        os << &(*fiter) << ": " << p1 << "--" << p2 << "--" << p3 << std::endl;
+    }
 }
 
-
-template <class Kernel>
-NodeHandle Mesh<Kernel>::add_node (Point2 const& p)
+template <typename Kernel>
+void Mesh<Kernel>::remove_node (Node_handle n)
 {
-    NodeHandle n(node_pool_.construct(p));
-    nodes_.insert(n);
-    return n;
-}
-
-template <class Kernel>
-void Mesh<Kernel>::remove_node (NodeHandle n)
-{
-    HalfEdgeHandle next = n->out_he();
+    Halfedge_handle next = n->halfedge();
     while (not n->is_isolated()) {
-        HalfEdgeHandle cur = next;
+        Halfedge_handle cur = next;
         next = cur->pair()->next();
         this->remove_edge(cur->edge());
     }
-
-    nodes_.erase(n);
-    node_pool_.destroy(n);
+    storage_.erase(n);
 }
 
-template <class Kernel>
-EdgeHandle Mesh<Kernel>::add_edge (NodeHandle n1, NodeHandle n2, BoundarySegment *bseginfo)
+template <typename Kernel>
+void Mesh<Kernel>::attach_edge (Edge_handle e, Node_handle n)
 {
-    BOOST_ASSERT(n1 != n2);
-    EdgeHandle e(edge_pool_.construct(n1, n2, bseginfo));
-    edges_.insert(e);
-    this->attach_edge(e, n1);
-    this->attach_edge(e, n2);
-    return e;
-}
-
-template <class Kernel>
-void Mesh<Kernel>::attach_edge (EdgeHandle e, NodeHandle n)
-{
-    HalfEdgeHandle out_he = e->halfedge_with_origin(n);
+    Halfedge_handle out_he = e->halfedge_with_origin(n);
     
     if (n->is_isolated()) {
-        n->out_he() = out_he;
+        n->set_halfedge(out_he);
     } else {
-        HalfEdgeHandle free_in_he = n->find_free_incident_halfedge();
+        Halfedge_handle free_in_he = n->find_free_incident_halfedge();
         // TODO: better handling of this situation (which should not normally happen)
-        BOOST_ASSERT_MSG(free_in_he != NULL, "Did not find free incident half-edge");
+        BOOST_ASSERT_MSG(free_in_he != Halfedge_handle(), "Did not find free incident half-edge");
         
-        HalfEdgeHandle free_out_he = free_in_he->next();        
-        BOOST_ASSERT(free_out_he->face() == NULL);
+        Halfedge_handle free_out_he = free_in_he->next();        
+        BOOST_ASSERT(free_out_he->is_boundary());
         
-        free_in_he->next() = out_he;
-        out_he->prev() = free_in_he;
-        out_he->pair()->next() = free_out_he; 
-        free_out_he->prev() = out_he->pair();
+        free_in_he->set_next(out_he);
+        out_he->set_prev(free_in_he);
+        out_he->pair()->set_next(free_out_he); 
+        free_out_he->set_prev(out_he->pair());
     }
 }
 
-template <class Kernel>
-void Mesh<Kernel>::remove_edge (EdgeHandle e)
+template <typename Kernel>
+void Mesh<Kernel>::remove_edge (Edge_handle e)
 {
     // remove elements on both sides of the edge
-    if (e->he1()->face() != NULL) {
+    if (not e->he1()->is_boundary()) {
         this->remove_face(e->he1()->face());
     }
-    if (e->he2()->face() != NULL) {
+    if (not e->he2()->is_boundary()) {
         this->remove_face(e->he2()->face());
     }
-    
+
     this->detach_edge(e, e->he1()->origin());
     this->detach_edge(e, e->he2()->origin());
     
-    edges_.erase(e);
-    edge_pool_.destroy(e);
+    storage_.erase(e);
 }
 
-template <class Kernel>
-NodeHandle Mesh<Kernel>::split_edge (EdgeHandle e, Point2 const& p)
+template <typename Kernel>
+void Mesh<Kernel>::detach_edge (Edge_handle e, Node_handle n)
 {
-    FaceHandle f1 = e->he1()->face();
-    FaceHandle f2 = e->he2()->face();
-    HalfEdgeHandle he1 = e->he1();
-    HalfEdgeHandle he2 = e->he2();
+    Halfedge_handle he = e->halfedge_with_origin(n);
     
-    HalfEdgeHandle he1n = NULL, he1p = NULL;
-    if (f1 != NULL) {
-        he1n = he1->next();
-        he1p = he1->prev();
-    }
-    
-    HalfEdgeHandle he2n = NULL, he2p = NULL;
-    if (f2 != NULL) {
-        he2n = he2->next();
-        he2p = he2->prev();
-    }
-    
-    NodeHandle n1 = he1->origin();
-    NodeHandle n2 = he2->origin();
-    BoundarySegment *bseginfo = e->boundary_info();
-    this->remove_edge(e);
-    NodeHandle n = this->add_node(p);
-    EdgeHandle e1 = this->add_edge(n1, n, bseginfo);
-    EdgeHandle e2 = this->add_edge(n2, n, bseginfo);
-    if (f1 != NULL) {
-        EdgeHandle e3 = this->add_edge(he1p->origin(), n, NULL);
-        this->add_face(he1p, e1->halfedge_with_origin(n1), e3->halfedge_with_origin(n));
-        this->add_face(he1n, e3->halfedge_with_origin(n)->pair(), e2->halfedge_with_origin(n));
-    }
-    if (f2 != NULL) {
-        EdgeHandle e4 = this->add_edge(he2p->origin(), n, NULL);
-        this->add_face(he2p, e2->halfedge_with_origin(n2), e4->halfedge_with_origin(n));
-        this->add_face(he2n, e4->halfedge_with_origin(n)->pair(), e1->halfedge_with_origin(n));
-    }
-    
-    return n;
-}
-
-template <class Kernel>
-NodeHandle Mesh<Kernel>::split_edge (EdgeHandle e)
-{
-    return this->split_edge(e, e->midpoint());
-}
-
-template <class Kernel>
-void Mesh<Kernel>::detach_edge (EdgeHandle e, NodeHandle n)
-{
-    HalfEdgeHandle he = e->halfedge_with_origin(n);
-    
-    if ( n->out_he() == he )
-    {
-        if ( he->pair()->next() != he )
-            n->out_he() = he->pair()->next();
-        else
-            n->out_he() = NULL;
+    if (n->halfedge() == he) {
+        if (he->pair()->next() != he) {
+            n->halfedge() = he->pair()->next();
+        } else {
+            n->halfedge() = Halfedge_handle();
+        }
     }
     
     he->prev()->next() = he->pair()->next();
     he->pair()->next()->prev() = he->prev();
 }
 
-template <class Kernel>
-EdgeHandle Mesh<Kernel>::swap_edge (EdgeHandle e)
-{   
-    BOOST_ASSERT(not e->is_boundary());
-
-    HalfEdgeHandle he1 = e->he1()->next();
-    HalfEdgeHandle he2 = e->he1()->prev();
-    HalfEdgeHandle he3 = e->he2()->next();
-    HalfEdgeHandle he4 = e->he2()->prev();
-    NodeHandle n1 = he2->origin();
-    NodeHandle n2 = he4->origin();
-    
-    this->remove_edge(e);
-    EdgeHandle new_edge = this->add_edge(n1, n2, NULL);
-    this->add_face(he2, he3, new_edge->halfedge_with_origin(n2));
-    this->add_face(he4, he1, new_edge->halfedge_with_origin(n1));
-    
-    return new_edge;
-}
-
-template <class Kernel>
-bool Mesh<Kernel>::make_adjacent (HalfEdgeHandle in, HalfEdgeHandle out)
+template <typename Kernel>
+bool Mesh<Kernel>::make_adjacent (Halfedge_handle in, Halfedge_handle out)
 {
     // half-edges are already adjacent
     if (in->next() == out)
         return true;
     
-    HalfEdgeHandle b = in->next();
-    HalfEdgeHandle d = out->prev();
+    Halfedge_handle b = in->next();
+    Halfedge_handle d = out->prev();
     
-    NodeHandle n = out->origin();
-    HalfEdgeHandle g = n->find_free_incident_halfedge_in_range(out->pair(), in);
+    Node_handle n = out->origin();
+    Halfedge_handle g = n->find_free_incident_halfedge_in_range(out->pair(), in);
     // half-edges cannot be made adjacent
-    if (g == NULL)
+    if (g == Halfedge_handle())
         return false;
     
-    HalfEdgeHandle h = g->next();
-    in->next() = out;
-    out->prev() = in;
-    g->next() = b;
-    b->prev() = g;
-    d->next() = h;
-    h->prev() = d;
+    Halfedge_handle h = g->next();
+    in->set_next(out);
+    out->set_prev(in);
+    g->set_next(b);
+    b->set_prev(g);
+    d->set_next(h);
+    h->set_prev(d);
     
     return true;
 }
 
-template <class Kernel>
-FaceHandle Mesh<Kernel>::add_face (HalfEdgeHandle he1, HalfEdgeHandle he2, HalfEdgeHandle he3)
-{
-    if (not(he1->face() == NULL &&
-            he2->face() == NULL &&
-            he3->face() == NULL))
-    {
-        std::clog << "Mesh<Kernel>::add_face: half-edges are not free, cannot add face\n";
-        return NULL;
-    }
-    
-    if (not(he1->pair()->origin() == he2->origin() &&
-            he2->pair()->origin() == he3->origin() &&
-            he3->pair()->origin() == he1->origin()))
-    {
-        std::clog << "Mesh<Kernel>::add_face: half-edges do not form a chain, cannot add face\n";
-        return NULL;
-    }
-    
-    if (not(make_adjacent(he1, he2) &&
-            make_adjacent(he2, he3) &&
-            make_adjacent(he3, he1)))
-    {
-        std::clog << "Mesh<Kernel>::add_face: attempting to create non-manifold mesh, cannot add face\n";
-        return NULL;
-    }
-    
-    FaceHandle f(face_pool_.construct(he1));
-    he1->face() = he2->face() = he3->face() = f;
-    faces_.insert(f);
-    
-    return f;
-}
-
-template <class Kernel>
-void Mesh<Kernel>::remove_face (FaceHandle f)
+template <typename Kernel>
+void Mesh<Kernel>::remove_face (Face_handle f)
 {    
-    HalfEdgeHandle begin = f->adjacent_he();
-    HalfEdgeHandle he_iterator = begin;
+    Halfedge_handle he_start = f->halfedge();
+    Halfedge_handle he_iter = he_start;
     do {
-        he_iterator->face() = NULL;
-        he_iterator = he_iterator->next();
-    } while (he_iterator != begin);
+        he_iter->face() = Face_handle();
+        he_iter = he_iter->next();
+    } while (he_iter != he_start);
     
-    faces_.erase(f);
-    face_pool_.destroy(f);
+    storage_.erase(f);
 }
 
-template <class Kernel>
-NodeHandle Mesh<Kernel>::split_face (FaceHandle f, Point2 const& p)
-{
-    HalfEdgeHandle he1 = f->adjacent_he();
-    HalfEdgeHandle he2 = he1->next();
-    HalfEdgeHandle he3 = he2->next();
-    
-    this->remove_face(f);
-    
-    NodeHandle n = this->add_node(p);
-    EdgeHandle e1 = this->add_edge(n, he1->origin(), NULL);
-    EdgeHandle e2 = this->add_edge(n, he2->origin(), NULL);
-    EdgeHandle e3 = this->add_edge(n, he3->origin(), NULL);
-    this->add_face(he1, e2->halfedge_with_origin(n)->pair(), e1->halfedge_with_origin(n));
-    this->add_face(he2, e3->halfedge_with_origin(n)->pair(), e2->halfedge_with_origin(n));
-    this->add_face(he3, e1->halfedge_with_origin(n)->pair(), e3->halfedge_with_origin(n));
-    
-    return n;
-}
 
-template <class Kernel>
-HalfEdgeHandle Mesh<Kernel>::boundary_halfedge() const
-{
-    BOOST_FOREACH(EdgeHandle e, edges_)
-    {
-        if (e->is_boundary()) {
-            return e->he1()->is_boundary() ? e->he1() : e->he2();
-        }
-    }
-    return NULL;
-}
-
-template <class Kernel>
+template <typename Kernel>
 BoundingBox Mesh<Kernel>::bounding_box () const
 {
     BoundingBox bb;
-    BOOST_FOREACH(NodeHandle n, this->nodes_)
-    {
-        bb.include(n->position());
+    for (Node_const_iterator iter = nodes_begin(); iter != nodes_end(); ++iter) {
+        bb.include(iter->position());
     }
     return bb;
 }
 
-template<class Kernel>
-Postscript_stream& operator<< (Postscript_stream& ps, Mesh<Kernel> const& m)
+template <typename Kernel>
+double Mesh<Kernel>::smallest_angle() const
 {
+    double sa = std::numeric_limits<double>::max();
+    for (Face_iterator iter = faces_begin(); iter != faces_end(); ++iter) {
+        double a = iter->minimum_angle();
+        if (a < sa) {
+            sa = a;
+        }
+    }
+    return sa;
+}
+
+template<typename Kernel>
+Postscript_ostream& operator<< (Postscript_ostream& ps, Mesh<Kernel> const& m)
+{
+    typedef typename Mesh<Kernel>::Node_const_iterator Node_iterator;
+    typedef typename Mesh<Kernel>::Edge_const_iterator Edge_iterator;
+    typedef typename Mesh<Kernel>::Face_const_iterator Face_iterator;
+
     ps.setgray(0.8);
-    BOOST_FOREACH(FaceHandle f, m.faces_)
-    {
-        ps << *f;
+    for (Face_iterator iter = m.faces_begin(); iter != m.faces_end(); ++iter) {
+        ps << *iter;
         ps.fill();
     }
     
     ps.setgray(0);
     ps.newpath();
-    BOOST_FOREACH(EdgeHandle e, m.edges_)
-    {
-        ps << *e;
+    for (Edge_iterator iter = m.edges_begin(); iter != m.edges_end(); ++iter) {
+        ps << *iter;
     }
     ps.stroke();
 
     ps.setrgbcolor(1,0,0);
-    BOOST_FOREACH(NodeHandle n, m.nodes_)
-    {
-        ps << n->position();
+    for (Node_iterator iter = m.nodes_begin(); iter != m.nodes_end(); ++iter) {
+        ps << iter->position();
         ps.fill();
     }
-    
+
     return ps;
 }
 
-template <class Kernel>
-void locate_point(Point2 const& p, FaceHandle start_face, typename Mesh<Kernel>::Point2Location& loc, void*& entity)
+template <typename Mesh>
+void locate_point(Point2 const& p, typename Mesh::Face_handle start_face, typename Mesh::Point2_location& loc, void*& entity)
 {
-    HalfEdgeHandle he_iter = start_face->adjacent_he();
-    HalfEdgeHandle he_start = he_iter;
+    typedef typename Mesh::Kernel_type     Kernel_type;
+    typedef typename Mesh::Halfedge_handle Halfedge_handle;
+
+    Halfedge_handle he_iter = start_face->halfedge();
+    Halfedge_handle he_start = he_iter;
     Point2 q = p;
     
     while (true) {
-        Oriented_side os = Kernel::oriented_side(he_iter, q);
+        Oriented_side os = Kernel_type::oriented_side(he_iter, q);
         switch (os) {
             case ON_POSITIVE_SIDE:
                 he_iter = he_iter->next();
-                if ( he_iter == he_start ) {
+                if (he_iter == he_start) {
                     entity = he_iter->face();
-                    loc = Mesh<Kernel>::IN_FACE;
+                    loc = Mesh::IN_FACE;
                     return;
                 }
                 break;
@@ -451,15 +438,15 @@ void locate_point(Point2 const& p, FaceHandle start_face, typename Mesh<Kernel>:
                     (std::min(p1.y(),p2.y()) < q.y() && q.y() < std::max(p1.y(),p2.y())) )
                 {
                     entity = he_iter->edge();
-                    loc = Mesh<Kernel>::ON_EDGE;
+                    loc = Mesh::ON_EDGE;
                     return;
                 } else if (q == p1) {
                     entity = he_iter->origin();
-                    loc = Mesh<Kernel>::ON_NODE;
+                    loc = Mesh::ON_NODE;
                     return;
                 } else if (q == p2) {
                     entity = he_iter->pair()->origin();
-                    loc = Mesh<Kernel>::ON_NODE;
+                    loc = Mesh::ON_NODE;
                     return;
                 }
             }
@@ -467,7 +454,7 @@ void locate_point(Point2 const& p, FaceHandle start_face, typename Mesh<Kernel>:
                 he_iter = he_iter->pair();
                 if ( he_iter->is_boundary() )
                 {
-                    loc = Mesh<Kernel>::OUTSIDE_MESH;
+                    loc = Mesh::OUTSIDE_MESH;
                     entity = he_iter->pair();
                     return;
                 }

@@ -19,45 +19,23 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#include "BoundingBox.h"
+#ifndef __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__
+#define __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__
 
-#include <ostream>
-#include <limits>
+#include "Point2.h"
 
 namespace umeshu {
 
-BoundingBox::BoundingBox()
-: ll_(std::numeric_limits<double>::max(),std::numeric_limits<double>::max()),
-  ur_(-std::numeric_limits<double>::max(),-std::numeric_limits<double>::max())
-{}
+class Exact_adaptive_kernel {
+public:
+    static Oriented_side oriented_side   (Point2 const& pa, Point2 const& pb, Point2 const& test);
+    static Oriented_side oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test);
 
-BoundingBox::BoundingBox(Point2 const& p1, Point2 const& p2)
-: ll_(std::numeric_limits<double>::max(),std::numeric_limits<double>::max()),
-  ur_(-std::numeric_limits<double>::max(),-std::numeric_limits<double>::max())
-{
-    include(p1);
-    include(p2);
+    static double signed_area  (Point2 const& pa, Point2 const& pb, Point2 const& pc);
+    static Point2 circumcenter (Point2 const& p1, Point2 const& p2, Point2 const& p3);
+    static Point2 offcenter    (Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant);
+};
+
 }
 
-void BoundingBox::include(Point2 const& p)
-{
-    if (p.x() < ll_.x())
-        ll_.x() = p.x();
-    if (p.x() > ur_.x())
-        ur_.x() = p.x();
-    if (p.y() < ll_.y())
-        ll_.y() = p.y();
-    if (p.y() > ur_.y())
-        ur_.y() = p.y();
-}
-
-std::ostream& operator<< (std::ostream& os, BoundingBox const& bb)
-{
-    os << "Bounding box: lower left:  " << bb.ll() << std::endl
-       << "              upper right: " << bb.ur() << std::endl
-       << "              width: " << bb.width() << std::endl
-       << "              height: " << bb.height() << std::endl;
-    return os;
-}
-
-} // namespace umeshu
+#endif /* __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__ */

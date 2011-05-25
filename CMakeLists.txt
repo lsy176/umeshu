@@ -38,9 +38,8 @@ endif()
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED     OFF)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package( Boost 1.36.0 COMPONENTS unit_test_framework REQUIRED )
-
-# find_package( Boost 1.36.0 REQUIRED )
+# set(BOOST_INCLUDEDIR "~/Development/include/")
+find_package( Boost 1.46.1 COMPONENTS unit_test_framework REQUIRED )
 if (!Boost_FOUND)
     message( FATAL_ERROR "Boost C++ libraries required." )
 endif()
@@ -49,14 +48,10 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${umeshu_SOURCE_DIR}/umeshu++)
 
 set( umeshu_SOURCES
-    umeshu++/BoundarySegment.cpp
-    umeshu++/BoundingBox.cpp
-    umeshu++/Edge.cpp
-    umeshu++/ExactAdaptiveKernel.cpp
-    umeshu++/ExactAdaptiveKernelInit.cpp
-    umeshu++/Face.cpp
-    umeshu++/FastKernel.cpp
-    umeshu++/Node.cpp
+    # umeshu++/BoundarySegment.cpp
+    umeshu++/Bounding_box.cpp
+    umeshu++/Exact_adaptive_kernel.cpp
+    umeshu++/Exact_adaptive_kernel_init.cpp
     umeshu++/Point2.cpp
     umeshu++/Polygon.cpp
     umeshu++/Postscript_ostream.cpp
@@ -70,6 +65,7 @@ target_link_libraries(umeshu-meshgen umeshu)
 ########### Tests ##############################################################
 enable_testing()
 add_subdirectory( tests )
+
 
 ########### Generate predicates_init.h #########################################
 # add_executable( predicates_init src/predicates_init.c )

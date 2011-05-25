@@ -19,52 +19,34 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __SMOOTHER_H_INCLUDED__
-#define __SMOOTHER_H_INCLUDED__ 
+#ifndef __BOUNDING_BOX_H_INCLUDED__
+#define __BOUNDING_BOX_H_INCLUDED__
+
+#include "Point2.h"
+
+#include <iosfwd>
 
 namespace umeshu {
 
-template<typename Mesh>
-class Smoother
-{
+class Bounding_box {
 public:
-    typedef typename Mesh::kernel_type kernel_type;
-
-    void smooth(Mesh &mesh, int niter);
-
+    Bounding_box();
+    Bounding_box(Point2 const& ll, Point2 const& ur);
+    
+    Point2 const& ll() const { return ll_; }
+    Point2 const& ur() const { return ur_; }
+    
+    double width() const { return ur_.x() - ll_.x(); }
+    double height() const { return ur_.y() - ll_.y(); }
+    
+    void include(Point2 const& p);
+    
 private:
-    void smooth_once(Mesh &mesh);
+    Point2 ll_, ur_;
 };
 
-template<typename Mesh>
-void Smoother<Mesh>::smooth(Mesh &mesh, int niter)
-{
-    for (int i = 0; i < niter; ++i) {
-        this->smooth_once(mesh);
-    }
-}
-
-template<typename Mesh>
-void Smoother<Mesh>::smooth_once(Mesh &mesh)
-{
-    typename Mesh::nodes_iterator nodes_iter = mesh.nodes_begin();
-    for(; nodes_iter != mesh.nodes_end(); ++nodes_iter) {
-        NodeHandle node = *nodes_iter;
-        if (node->is_boundary()) {
-            continue;
-        }
-        Point2 new_pos;
-        int n = node->degree();
-        HalfEdgeHandle he_start = node->out_he()->pair();
-        HalfEdgeHandle he_iter = he_start;
-        do {
-            new_pos += he_iter->origin()->position()/n;
-            he_iter = he_iter->next()->pair();
-        } while (he_iter != he_start);
-        node->position() = new_pos;
-    }
-}
+std::ostream& operator<< (std::ostream& os, Bounding_box const& bb);
 
 } // namespace umeshu
 
-#endif /* __SMOOTHER_H_INCLUDED__ */
+#endif // __BOUNDING_BOX_H_INCLUDED__

@@ -19,13 +19,9 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __EXACTADAPTIVEKERNELINIT_H_INCLUDED__
-#define __EXACTADAPTIVEKERNELINIT_H_INCLUDED__ 
+#include "Exact_adaptive_kernel_init.h"
 
-void exactinit(void);
+namespace {
+    Exact_adaptive_kernel_init exact_kernel_init();
+}
 
-class ExactAdaptiveKernelInit {
-    ExactAdaptiveKernelInit() { exactinit(); }
-};
-
-#endif /* __EXACTADAPTIVEKERNELINIT_H_INCLUDED__ */

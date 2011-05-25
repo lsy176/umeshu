@@ -25,9 +25,11 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/operators.hpp>
 
-#include <iosfwd>
+#include <ostream>
 
 namespace umeshu {
+
+typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
 
 class Point2
     : boost::additive< Point2
@@ -39,10 +41,10 @@ public:
     Point2() { coord_[0] = 0.0; coord_[1] = 0.0; }
     Point2(double x, double y) { coord_[0] = x; coord_[1] = y; }
     
-    double  x() const { return coord_[0]; }
     double& x()       { return coord_[0]; }
-    double  y() const { return coord_[1]; }
+    double  x() const { return coord_[0]; }
     double& y()       { return coord_[1]; }
+    double  y() const { return coord_[1]; }
     
     double const* coord() const { return &coord_[0]; }
 
@@ -51,17 +53,17 @@ public:
     Point2 operator*=(double a) { x() *= a; y() *= a; return *this; }
     Point2 operator/=(double a) { x() /= a; y() /= a; return *this; }
 
-    friend bool operator== (Point2 const& p1, Point2 const& p2);
+    friend bool          operator== (Point2 const& p1, Point2 const& p2);
+    friend std::ostream& operator<< (std::ostream& os, Point2 const& p);
 
 private:
     double coord_[2];
-
-    friend std::ostream& operator<<(std::ostream& os, Point2 const& p);
 };
 
 inline bool operator== (Point2 const& p1, Point2 const& p2)
 {
-    return p1.x() == p2.x() && p1.y() == p2.y(); }
+    return p1.x() == p2.x() && p1.y() == p2.y();
+}
 
 inline double distance_squared (Point2 const& p1, Point2 const& p2)
 {

@@ -22,33 +22,62 @@
 #ifndef __POSTSCRIPT_STREAM_H_INCLUDED__
 #define __POSTSCRIPT_STREAM_H_INCLUDED__
 
-#include "BoundingBox.h"
-#include "Mesh_fwd.h"
+#include "Bounding_box.h"
+#include "Point2.h"
 
 #include <fstream>
 #include <string>
 
 namespace umeshu {
 
-class Postscript_stream {    
+class Postscript_ostream {    
 public:
-    Postscript_stream (std::string const& filename, BoundingBox const& bb);
+    Postscript_ostream (std::string const& filename, Bounding_box const& bb);
     
-    void newpath();
-    void closepath();
-    void stroke();
-    void fill();
-    void setrgbcolor(double r, double g, double b);
-    void setgray(double g);
-
-    Postscript_stream& operator<< (Point2 const& p);
-    Postscript_stream& operator<< (Edge const& e);
-    Postscript_stream& operator<< (Face const& f);
+    void newpath() {
+        of_ << "np\n";
+    }
+    void closepath() {
+        of_ << "cp\n";
+    }
+    void moveto(Point2 const& p) {
+        Point2 tp = transform(p);
+        of_ << tp.x() << " " << tp.y() << " m\n";
+    }
+    void lineto(Point2 const& p) {
+        Point2 tp = transform(p);
+        of_ << tp.x() << " " << tp.y() << " l\n";
+    }
+    void stroke() {
+        of_ << "s\n";
+    }
+    void fill() {
+        of_ << "f\n";
+    }
+    void dot(Point2 const& p) {
+        Point2 tp = transform(p);
+        of_ << tp.x() << " " << tp.y() << " c\n";
+    }
+    void setrgbcolor(double r, double g, double b) {
+        of_ << r << " " << g << " " << b << " sc\n";
+    }
+    void setgray(double g) {
+        of_ << g << " sg\n";
+    }
 
 private:
+    Point2 transform(Point2 const& p) {
+        Point2 tp;
+        tp.x() = x_scale*p.x() - x_trans;
+        tp.y() = y_scale*p.y() - y_trans;
+        return tp;
+    }
+
     std::ofstream of_;
-    BoundingBox bb_;
+    Bounding_box bb_;
     double fig_width_, fig_height_;
+    double x_scale, y_scale;
+    double x_trans, y_trans;
 
     static float const default_fig_size;
     static float const default_fig_margin;

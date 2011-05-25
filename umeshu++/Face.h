@@ -23,133 +23,303 @@
 #define __FACE_H_INCLUDED__
 
 #include "Identifiable.h"
-#include "Mesh_fwd.h"
 #include "Point2.h"
-#include "ExactAdaptiveKernel.h"
 
 #include <boost/assert.hpp>
 
 namespace umeshu {
 
-class Face : public Identifiable
-{
+template <typename Mesh>
+class Face : public Identifiable {
 public:
-    explicit Face(HalfEdgeHandle adj_edge)
-        : adj_edge_(adj_edge), area_(0.0)
-    { this->compute_area<ExactAdaptiveKernel>(); }
+    typedef typename Mesh::Kernel_type           Kernel_type;
+    typedef typename Mesh::Node_handle           Node_handle;
+    typedef typename Mesh::Halfedge_handle       Halfedge_handle;
+    typedef typename Mesh::Halfedge_const_handle Halfedge_const_handle;
+    typedef typename Mesh::Edge_handle           Edge_handle;
+    typedef typename Mesh::Face_handle           Face_handle;
 
-    inline HalfEdgeHandle adjacent_he() const { return adj_edge_; }
-    inline HalfEdgeHandle& adjacent_he() { return adj_edge_; }
+    explicit Face(Halfedge_handle adj_edge)
+        : adj_edge_(adj_edge)
+        , area_(0.0)
+    { this->compute_area(); }
+
+    Halfedge_handle       halfedge ()       { return adj_edge_; }
+    Halfedge_const_handle halfedge () const { return adj_edge_; }
     
-    void edge_lengths(double& el1, double& el2, double& el3) const;
-    void edge_lengths_squared(double& el1, double& el2, double& el3) const;
+    void edge_lengths         (double& el1, double& el2, double& el3) const;
+    void edge_lengths_squared (double& el1, double& el2, double& el3) const;
 
-    HalfEdgeHandle longest_edge(double *l = NULL) const;
-    double longest_edge_length() const;
-    double longest_edge_length_squared() const;
-
-    HalfEdgeHandle shortest_edge(double *l = NULL) const;
-    double shortest_edge_length() const;
-    double shortest_edge_length_squared() const;
+    Halfedge_handle longest_edge  (double *l = NULL) const;
+    Halfedge_handle shortest_edge (double *l = NULL) const;
+    double longest_edge_length  () const;
+    double shortest_edge_length () const;
+    double longest_edge_length_squared  () const;
+    double shortest_edge_length_squared () const;
     
-    void angles(double& a1, double& a2, double& a3) const;
-    double minimum_angle() const;
-    double maximum_angle() const;
+    void angles (double& a1, double& a2, double& a3) const;
+    double minimum_angle () const;
+    double maximum_angle () const;
 
-    template <typename Kernel>
-    double circumradius() const;
-    
-    Point2 barycenter() const;
-
-    template <typename Kernel>
-    Point2 circumcenter() const;
-
-    template <typename Kernel>
-    Point2 offcenter(double offconstant) const;
-
-    template <typename Kernel>
-    double area() const { return area_; }
-    template <typename Kernel>
-    double compute_area();
-
-    template <typename Kernel>
-    double quality() const;
+    double circumradius () const;
+    Point2 barycenter   () const;
+    Point2 circumcenter () const;
+    Point2 offcenter    (double offconstant) const;
+    double area         () const { return area_; }
+    double compute_area ();
+    double quality      () const;
     
     bool is_restricted() const;
 
-    void nodes(NodeHandle& n1, NodeHandle& n2, NodeHandle& n3) const;
+    void nodes(Node_handle& n1, Node_handle& n2, Node_handle& n3) const;
     void vertices(Point2& v1, Point2& v2, Point2& v3) const;
 
-    friend bool operator== (Face const& f1, Face const& f2);
-    friend bool operator!= (Face const& f1, Face const& f2);
-    friend std::ostream& operator<< (std::ostream& os, Face const& f);
-    
+    // friend bool operator== (Face const& f1, Face const& f2);
+    // friend bool operator!= (Face const& f1, Face const& f2);
+
 private:
-    HalfEdgeHandle adj_edge_;
+    Halfedge_handle adj_edge_;
     double area_;
 };
 
-inline bool operator== (Face const& f1, Face const& f2)
-{
-    NodeHandle f1n1, f1n2, f1n3;
-    NodeHandle f2n1, f2n2, f2n3;
-    f1.nodes(f1n1, f1n2, f1n3);
-    f2.nodes(f2n1, f2n2, f2n3);
-    if (f1n1 == f2n1 && f1n2 == f2n2 && f1n3 == f2n3 ) return true;
-    if (f1n1 == f2n2 && f1n2 == f2n3 && f1n3 == f2n1 ) return true;
-    if (f1n1 == f2n3 && f1n2 == f2n1 && f1n3 == f2n2 ) return true;
-    return false;
-}
+// inline bool operator== (Face const& f1, Face const& f2)
+// {
+    // Node_handle f1n1, f1n2, f1n3;
+    // Node_handle f2n1, f2n2, f2n3;
+    // f1.nodes(f1n1, f1n2, f1n3);
+    // f2.nodes(f2n1, f2n2, f2n3);
+    // if (f1n1 == f2n1 && f1n2 == f2n2 && f1n3 == f2n3 ) return true;
+    // if (f1n1 == f2n2 && f1n2 == f2n3 && f1n3 == f2n1 ) return true;
+    // if (f1n1 == f2n3 && f1n2 == f2n1 && f1n3 == f2n2 ) return true;
+    // return false;
+// }
 
-inline bool operator!= (Face const& f1, Face const& f2)
-{
-    return !(f1 == f2);
-}
+// inline bool operator!= (Face const& f1, Face const& f2)
+// {
+    // return !(f1 == f2);
+// }
 
+template <typename Mesh>
 struct compare_faces {
-    bool operator() (FaceHandle f1, FaceHandle f2) const;
+    bool operator() (typename Mesh::Face_handle f1, typename Mesh::Face_handle f2) const {
+        double s1 = f1->shortest_edge_length();
+        s1 *= s1;
+        double s2 = f2->shortest_edge_length();
+        s2 *= s2;
+
+        if (s1 == s2)
+            return f1 < f2;
+        else
+            return s1 < s2;
+    }
 };
 
-template <typename Kernel>
-double Face::compute_area()
+template <typename Mesh>
+double Face<Mesh>::compute_area()
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    area_ = Kernel::signed_area(p1, p2, p3);
+    area_ = Kernel_type::signed_area(p1, p2, p3);
     BOOST_ASSERT(area_ > 0.0);
     return area_;
 }
 
-template <typename Kernel>
-double Face::quality() const
+template <typename Mesh>
+double Face<Mesh>::quality() const
 {
     // TODO
     return 1.0;
 }
 
-
-template <typename Kernel>
-Point2 Face::circumcenter() const
+template <typename Mesh>
+Point2 Face<Mesh>::circumcenter() const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    return Kernel::circumcenter(p1, p2, p3);    
+    return Kernel_type::circumcenter(p1, p2, p3);    
 }
 
-template <typename Kernel>
-Point2 Face::offcenter(double offconstant) const
+template <typename Mesh>
+Point2 Face<Mesh>::offcenter(double offconstant) const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    return Kernel::offcenter(p1, p2, p3, offconstant);
+    return Kernel_type::offcenter(p1, p2, p3, offconstant);
 }
 
-template <typename Kernel>
-double Face::circumradius() const
+template <typename Mesh>
+double Face<Mesh>::circumradius() const
 {
     Point2 p1, p2, p3;
     this->vertices(p1, p2, p3);
-    return Kernel::circumradius(p1, p2, p3);
+    return Kernel_type::circumradius(p1, p2, p3);
+}
+
+template <typename Mesh>
+void Face<Mesh>::edge_lengths(double& el1, double& el2, double& el3) const
+{
+    Point2 p1, p2, p3;
+    this->vertices(p1, p2, p3);
+    el1 = umeshu::distance(p1, p2);
+    el2 = umeshu::distance(p2, p3);
+    el3 = umeshu::distance(p3, p1);
+}
+
+template <typename Mesh>
+void Face<Mesh>::edge_lengths_squared(double& el1, double& el2, double& el3) const
+{
+    Point2 p1, p2, p3;
+    this->vertices(p1, p2, p3);
+    el1 = umeshu::distance_squared(p1, p2);
+    el2 = umeshu::distance_squared(p2, p3);
+    el3 = umeshu::distance_squared(p3, p1);
+}
+
+template <typename Mesh>
+typename Mesh::Halfedge_handle Face<Mesh>::longest_edge(double *l) const
+{
+    Halfedge_handle he1 = adj_edge_;
+    Halfedge_handle he2 = he1->next();
+    Halfedge_handle he3 = he2->next();
+    BOOST_ASSERT(he3->next() == he1);
+    
+    double l1 = he1->edge()->length();
+    double l2 = he2->edge()->length();
+    double l3 = he3->edge()->length();
+    if (l1 > l2 && l1 > l3) {
+        *l = l1;
+        return he1;
+    } else if (l2 > l3) {
+        *l = l2;
+        return he2;
+    } else {
+        *l = l3;
+        return he3;
+    }
+}
+
+template <typename Mesh>
+double Face<Mesh>::longest_edge_length() const
+{
+    double l1, l2, l3;
+    this->edge_lengths(l1, l2, l3);
+    return std::max(l1,std::max(l2,l3));
+}
+
+template <typename Mesh>
+double Face<Mesh>::longest_edge_length_squared() const
+{
+    double l1, l2, l3;
+    this->edge_lengths_squared(l1, l2, l3);
+    return std::max(l1,std::max(l2,l3));
+}
+
+template <typename Mesh>
+typename Mesh::Halfedge_handle Face<Mesh>::shortest_edge(double *l) const
+{
+    Halfedge_handle he1 = adj_edge_;
+    Halfedge_handle he2 = he1->next();
+    Halfedge_handle he3 = he2->next();
+    BOOST_ASSERT(he3->next() == he1);
+
+    double l1 = he1->edge()->length();
+    double l2 = he2->edge()->length();
+    double l3 = he3->edge()->length();
+    if (l1 < l2 && l1 < l3) {
+        *l = l1;
+        return he1;
+    } else if (l2 < l3) {
+        *l = l2;
+        return he2;
+    } else {
+        *l = l3;
+        return he3;
+    }
+}
+
+template <typename Mesh>
+double Face<Mesh>::shortest_edge_length() const
+{
+    double l1, l2, l3;
+    this->edge_lengths(l1, l2, l3);
+    return std::min(l1, std::min(l2, l3));
+}
+
+template <typename Mesh>
+double Face<Mesh>::shortest_edge_length_squared() const
+{
+    double l1, l2, l3;
+    this->edge_lengths_squared(l1, l2, l3);
+    return std::min(l1, std::min(l2, l3));
+}
+
+template <typename Mesh>
+void Face<Mesh>::angles(double& a1, double& a2, double& a3) const
+{    
+    Point2 p1, p2, p3;
+    this->vertices(p1, p2, p3);
+    umeshu::triangle_angles(p1, p2, p3, a1, a2, a3);
+}
+
+template <typename Mesh>
+double Face<Mesh>::minimum_angle() const
+{
+    double a1, a2, a3;
+    this->angles(a1, a2, a3);
+    return std::min(a1,std::min(a2,a3));
+}
+
+template <typename Mesh>
+double Face<Mesh>::maximum_angle() const
+{
+    double a1, a2, a3;
+    this->angles(a1, a2, a3);
+    return std::max(a1,std::max(a2,a3));
+}
+
+template <typename Mesh>
+Point2 Face<Mesh>::barycenter() const
+{
+    Point2 p1, p2, p3;
+    this->vertices(p1, p2, p3);
+    return umeshu::barycenter(p1, p2, p3);
+}
+
+template <typename Mesh>
+bool Face<Mesh>::is_restricted() const
+{
+    int bedges = 0;
+    Halfedge_handle he = this->adjacent_he();
+    if (he->pair()->is_boundary()) {
+        ++bedges;
+    }
+    he = he->next();
+    if (he->pair()->is_boundary()) {
+        ++bedges;
+    }
+    he = he->next();
+    if (he->pair()->is_boundary()) {
+        ++bedges;
+    }
+    return bedges >= 2;
+}
+
+template <typename Mesh>
+void Face<Mesh>::nodes(Node_handle& n1, Node_handle& n2, Node_handle& n3) const
+{
+    n1 = adj_edge_->origin();
+    n2 = adj_edge_->next()->origin();
+    n3 = adj_edge_->prev()->origin();
+}
+
+template <typename Mesh>
+void Face<Mesh>::vertices(Point2& v1, Point2& v2, Point2& v3) const
+{
+    Node_handle n1, n2, n3;
+    this->nodes(n1, n2, n3);
+    v1 = n1->position();
+    v2 = n2->position();
+    v3 = n3->position();
 }
 
 } // namespace umeshu

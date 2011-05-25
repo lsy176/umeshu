@@ -19,10 +19,7 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#include "Edge.h"
-#include "ExactAdaptiveKernel.h"
-#include "Node.h"
-#include "Point2.h"
+#include "Exact_adaptive_kernel.h"
 
 #include <boost/assert.hpp>
 
@@ -31,7 +28,7 @@ double incircle(double const* pa, double const* pb, double const* pc, double con
 
 namespace umeshu {
 
-Oriented_side ExactAdaptiveKernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
+Oriented_side Exact_adaptive_kernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
 {
     double r = orient2d(pa.coord(), pb.coord(), test.coord());
     if (r > 0.0)
@@ -42,12 +39,7 @@ Oriented_side ExactAdaptiveKernel::oriented_side (Point2 const& pa, Point2 const
         return ON_ORIENTED_BOUNDARY;
 }
 
-Oriented_side ExactAdaptiveKernel::oriented_side (HalfEdgeHandle he, Point2 const& test)
-{
-    return oriented_side(he->origin()->position(), he->pair()->origin()->position(), test);    
-}
-
-Oriented_side ExactAdaptiveKernel::oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test)
+Oriented_side Exact_adaptive_kernel::oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test)
 {
     double r = incircle(pa.coord(), pb.coord(), pc.coord(), test.coord());
     if (r > 0.0)
@@ -58,19 +50,19 @@ Oriented_side ExactAdaptiveKernel::oriented_circle (Point2 const& pa, Point2 con
         return ON_ORIENTED_BOUNDARY;    
 }
 
-double ExactAdaptiveKernel::signed_area(Point2 const& pa, Point2 const& pb, Point2 const& pc)
+double Exact_adaptive_kernel::signed_area(Point2 const& pa, Point2 const& pb, Point2 const& pc)
 {
     return 0.5*orient2d(pa.coord(), pb.coord(), pc.coord());
 }
 
-Point2 ExactAdaptiveKernel::circumcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3)
+Point2 Exact_adaptive_kernel::circumcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3)
 {
     Point2 p2p1(p2.x()-p1.x(), p2.y()-p1.y());
     Point2 p3p1(p3.x()-p1.x(), p3.y()-p1.y());
     Point2 p2p3(p2.x()-p3.x(), p2.y()-p3.y());
     double p2p1dist = p2p1.x()*p2p1.x() + p2p1.y()*p2p1.y();
     double p3p1dist = p3p1.x()*p3p1.x() + p3p1.y()*p3p1.y();
-    double denominator = 0.5/(2.0*ExactAdaptiveKernel::signed_area(p1, p2, p3));
+    double denominator = 0.5/(2.0*Exact_adaptive_kernel::signed_area(p1, p2, p3));
     BOOST_ASSERT(denominator > 0.0);
     double dx = (p3p1.y() * p2p1dist - p2p1.y() * p3p1dist) * denominator;
     double dy = (p2p1.x() * p3p1dist - p3p1.x() * p2p1dist) * denominator;
@@ -78,7 +70,7 @@ Point2 ExactAdaptiveKernel::circumcenter(Point2 const& p1, Point2 const& p2, Poi
 }
 
 
-Point2 ExactAdaptiveKernel::offcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant)
+Point2 Exact_adaptive_kernel::offcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant)
 {
     Point2 p2p1(p2.x()-p1.x(), p2.y()-p1.y());
     Point2 p3p1(p3.x()-p1.x(), p3.y()-p1.y());
@@ -86,7 +78,7 @@ Point2 ExactAdaptiveKernel::offcenter(Point2 const& p1, Point2 const& p2, Point2
     double p2p1dist = p2p1.x()*p2p1.x() + p2p1.y()*p2p1.y();
     double p3p1dist = p3p1.x()*p3p1.x() + p3p1.y()*p3p1.y();
     double p2p3dist = p2p3.x()*p2p3.x() + p2p3.y()*p2p3.y();
-    double denominator = 0.5/(2.0*ExactAdaptiveKernel::signed_area(p1, p2, p3));
+    double denominator = 0.5/(2.0*Exact_adaptive_kernel::signed_area(p1, p2, p3));
     BOOST_ASSERT(denominator > 0.0);
     double dx = (p3p1.y() * p2p1dist - p2p1.y() * p3p1dist) * denominator;
     double dy = (p2p1.x() * p3p1dist - p3p1.x() * p2p1dist) * denominator;

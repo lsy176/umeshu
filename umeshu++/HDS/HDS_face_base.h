@@ -19,26 +19,35 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#ifndef __MESH_FWD_H_INCLUDED__
-#define __MESH_FWD_H_INCLUDED__
+#ifndef __HDS_FACE_BASE_H_INCLUDED__
+#define __HDS_FACE_BASE_H_INCLUDED__ 
+
+#include <boost/assert.hpp>
 
 namespace umeshu {
+namespace hds {
 
-class Point2;
+template <typename HDS>
+class HDS_face_base {
+public:
+    typedef typename HDS::Node_handle           Node_handle;
+    typedef typename HDS::Node_const_handle     Node_const_handle;
+    typedef typename HDS::Halfedge_handle       Halfedge_handle;
+    typedef typename HDS::Halfedge_const_handle Halfedge_const_handle;
+    typedef typename HDS::Edge_handle           Edge_handle;
+    typedef typename HDS::Edge_const_handle     Edge_const_handle;
+    typedef typename HDS::Face_handle           Face_handle;
+    typedef typename HDS::Face_const_handle     Face_const_handle;
 
-class Node;
-typedef Node* NodeHandle;
+    Halfedge_handle       halfedge ()       { return adj_he_; }
+    Halfedge_const_handle halfedge () const { return adj_he_; }
+    void                  set_halfedge(Halfedge_handle he) { adj_he_ = he; }    
+    
+private:
+    Halfedge_handle adj_he_;
+};
 
-class HalfEdge;
-typedef HalfEdge* HalfEdgeHandle;
-class Edge;
-typedef Edge* EdgeHandle;
-
-class Face;
-typedef Face* FaceHandle;
-
-typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
-
+} // namespace hds
 } // namespace umeshu
 
-#endif // __MESH_FWD_H_INCLUDED__
+#endif /* __HDS_FACE_BASE_H_INCLUDED__ */
