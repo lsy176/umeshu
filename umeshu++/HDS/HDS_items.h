@@ -22,7 +22,6 @@
 #ifndef __HDS_ITEMS_H_INCLUDED__
 #define __HDS_ITEMS_H_INCLUDED__ 
 
-#include "../Point2.h"
 #include "HDS_node_base.h"
 #include "HDS_halfedge_base.h"
 #include "HDS_edge_base.h"
@@ -32,19 +31,19 @@ namespace umeshu {
 namespace hds {
 
 struct HDS_items {
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Node_wrapper {
         typedef HDS_node_base<HDS> Node;
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Halfedge_wrapper {
         typedef HDS_halfedge_base<HDS> Halfedge;  
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Edge_wrapper {
         typedef HDS_edge_base<HDS> Edge;  
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Face_wrapper {
         typedef HDS_face_base<HDS> Face;  
     };

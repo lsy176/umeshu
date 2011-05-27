@@ -52,7 +52,6 @@ set( umeshu_SOURCES
     umeshu++/Bounding_box.cpp
     umeshu++/Exact_adaptive_kernel.cpp
     umeshu++/Exact_adaptive_kernel_init.cpp
-    umeshu++/Point2.cpp
     umeshu++/Polygon.cpp
     umeshu++/Postscript_ostream.cpp
     umeshu++/Predicates.cpp

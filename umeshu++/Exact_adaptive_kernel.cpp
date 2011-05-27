@@ -21,14 +21,12 @@
 
 #include "Exact_adaptive_kernel.h"
 
-#include <boost/assert.hpp>
-
 double orient2d(double const* pa, double const* pb, double const* pc);
 double incircle(double const* pa, double const* pb, double const* pc, double const* pd);
 
 namespace umeshu {
 
-Oriented_side Exact_adaptive_kernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
+Exact_adaptive_kernel::Oriented_side Exact_adaptive_kernel::oriented_side (Point2 const& pa, Point2 const& pb, Point2 const& test)
 {
     double r = orient2d(pa.coord(), pb.coord(), test.coord());
     if (r > 0.0)
@@ -39,7 +37,7 @@ Oriented_side Exact_adaptive_kernel::oriented_side (Point2 const& pa, Point2 con
         return ON_ORIENTED_BOUNDARY;
 }
 
-Oriented_side Exact_adaptive_kernel::oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test)
+Exact_adaptive_kernel::Oriented_side Exact_adaptive_kernel::oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test)
 {
     double r = incircle(pa.coord(), pb.coord(), pc.coord(), test.coord());
     if (r > 0.0)
@@ -50,11 +48,6 @@ Oriented_side Exact_adaptive_kernel::oriented_circle (Point2 const& pa, Point2 c
         return ON_ORIENTED_BOUNDARY;    
 }
 
-double Exact_adaptive_kernel::signed_area(Point2 const& pa, Point2 const& pb, Point2 const& pc)
-{
-    return 0.5*orient2d(pa.coord(), pb.coord(), pc.coord());
-}
-
 Point2 Exact_adaptive_kernel::circumcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3)
 {
     Point2 p2p1(p2.x()-p1.x(), p2.y()-p1.y());
@@ -62,13 +55,12 @@ Point2 Exact_adaptive_kernel::circumcenter(Point2 const& p1, Point2 const& p2, P
     Point2 p2p3(p2.x()-p3.x(), p2.y()-p3.y());
     double p2p1dist = p2p1.x()*p2p1.x() + p2p1.y()*p2p1.y();
     double p3p1dist = p3p1.x()*p3p1.x() + p3p1.y()*p3p1.y();
-    double denominator = 0.5/(2.0*Exact_adaptive_kernel::signed_area(p1, p2, p3));
+    double denominator = 0.5/(2.0*signed_area(p1, p2, p3));
     BOOST_ASSERT(denominator > 0.0);
     double dx = (p3p1.y() * p2p1dist - p2p1.y() * p3p1dist) * denominator;
     double dy = (p2p1.x() * p3p1dist - p3p1.x() * p2p1dist) * denominator;
     return Point2(p1.x()+dx, p1.y()+dy);
 }
-
 
 Point2 Exact_adaptive_kernel::offcenter(Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant)
 {
@@ -108,6 +100,11 @@ Point2 Exact_adaptive_kernel::offcenter(Point2 const& p1, Point2 const& p2, Poin
     }
     
     return Point2(p1.x()+dx, p1.y()+dy);
+}
+
+double Exact_adaptive_kernel::signed_area (Point_2 const& pa, Point_2 const& pb, Point_2 const& pc)
+{
+    return 0.5*orient2d(pa.coord(), pb.coord(), pc.coord());
 }
 
 } // namespace umeshu

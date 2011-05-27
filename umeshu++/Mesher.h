@@ -64,7 +64,7 @@ private:
 
     void undo_swapping ();
     void clear_undo_stack() {
-        while (not undo_stack_.empty()) {
+       while (not undo_stack_.empty()) {
             undo_stack_.pop();
         }
     }

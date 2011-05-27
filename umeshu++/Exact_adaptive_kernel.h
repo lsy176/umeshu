@@ -24,18 +24,67 @@
 
 #include "Point2.h"
 
+#include <boost/assert.hpp>
+#include <boost/math/constants/constants.hpp>
+
+#include <cmath>
+
 namespace umeshu {
 
 class Exact_adaptive_kernel {
-public:
-    static Oriented_side oriented_side   (Point2 const& pa, Point2 const& pb, Point2 const& test);
-    static Oriented_side oriented_circle (Point2 const& pa, Point2 const& pb, Point2 const& pc, Point2 const& test);
+    public:
+        typedef Point2 Point_2;
 
-    static double signed_area  (Point2 const& pa, Point2 const& pb, Point2 const& pc);
-    static Point2 circumcenter (Point2 const& p1, Point2 const& p2, Point2 const& p3);
-    static Point2 offcenter    (Point2 const& p1, Point2 const& p2, Point2 const& p3, double offconstant);
+        typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
+
+        static Oriented_side oriented_side   (Point_2 const& pa, Point_2 const& pb, Point_2 const& test);
+        static Oriented_side oriented_circle (Point_2 const& pa, Point_2 const& pb, Point_2 const& pc, Point_2 const& test);
+        static Point_2 circumcenter (Point_2 const& p1, Point_2 const& p2, Point_2 const& p3);
+        static Point_2 offcenter    (Point_2 const& p1, Point_2 const& p2, Point_2 const& p3, double offconstant);
+        static double  signed_area  (Point_2 const& pa, Point_2 const& pb, Point_2 const& pc);
+
+        static double distance_squared (Point_2 const& p1, Point_2 const& p2) {
+            double x = p1.x() - p2.x();
+            double y = p1.y() - p2.y();
+            return x*x + y*y;
+        }
+
+        static double distance (Point_2 const& p1, Point_2 const& p2) {
+            return std::sqrt(distance_squared(p1, p2));
+        }
+
+        static Point_2 midpoint (Point_2 const& p1, Point_2 const& p2) {
+            return Point_2(0.5*(p1.x()+p2.x()), 0.5*(p1.y()+p2.y()));
+        }
+
+        static double circumradius (Point_2 const& p1, Point_2 const& p2, Point_2 const& p3) {
+            double a = distance(p1, p2);
+            double b = distance(p2, p3);
+            double c = distance(p3, p1);
+            double s = 0.5*(a+b+c);
+            return 0.25*a*b*c/(std::sqrt(s*(s-a)*(s-b)*(s-c)));
+        }
+
+        static void triangle_angles (Point_2 const& p1, Point_2 const& p2, Point_2 const& p3, double& a1, double& a2, double& a3) {
+            double a, b, c;
+            a = distance(p2, p3);
+            b = distance(p1, p3);
+            c = distance(p1, p2);
+            double aa = a*a;
+            double bb = b*b;
+            double cc = c*c;
+
+            a1 = std::acos((bb+cc-aa)/(2.0*b*c));
+            a2 = std::acos((aa+cc-bb)/(2.0*a*c));
+            a3 = std::acos((aa+bb-cc)/(2.0*a*b));
+        }
+
+        static Point_2 barycenter (Point_2 const& p1, Point_2 const& p2, Point_2 const& p3) {
+            const double one_third = boost::math::constants::third<double>();
+            return Point2(one_third*(p1.x()+p2.x()+p3.x()),one_third*(p1.y()+p2.y()+p3.y()));
+        }
 };
 
-}
+} // namespace umeshu
 
 #endif /* __EXACT_ADAPTIVE_KERNEL_H_INCLUDED__ */

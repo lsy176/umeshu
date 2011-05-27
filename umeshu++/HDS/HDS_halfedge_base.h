@@ -38,12 +38,12 @@ public:
     typedef typename HDS::Face_const_handle     Face_const_handle;
 
     HDS_halfedge_base()
-        : origin_()
-        , pair_()
+        : pair_()
         , next_()
         , prev_()
-        , face_()
+        , origin_()
         , edge_()
+        , face_()
     {}
 
     Node_handle           origin ()                     { return origin_; }
@@ -76,8 +76,8 @@ private:
     Halfedge_handle pair_;
     Halfedge_handle next_;
     Halfedge_handle prev_;
-    Edge_handle     edge_;
     Node_handle     origin_;
+    Edge_handle     edge_;
     Face_handle     face_;
 };
 

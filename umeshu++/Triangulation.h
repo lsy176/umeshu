@@ -24,6 +24,7 @@
 
 #include "HDS/HDS.h"
 #include "Bounding_box.h"
+#include "Exact_adaptive_kernel.h"
 #include "Postscript_ostream.h"
 
 #include <boost/assert.hpp>
@@ -32,12 +33,14 @@
 
 namespace umeshu {
 
-template <typename Items>
-class Triangulation : public hds::HDS<Items> {
+template <typename Triangulation_items, typename Kernel_ = Exact_adaptive_kernel, typename Alloc = std::allocator<int> >
+class Triangulation : public hds::HDS<Triangulation_items, Kernel_, Alloc> {
 public:
-    typedef typename Items::Point2   Point2;
+    typedef          hds::HDS<Triangulation_items, Kernel_, Alloc> Base;
+    typedef          Triangulation_items Items;
+    typedef          Kernel_             Kernel;
+    typedef typename Kernel::Point_2     Point_2;
 
-    typedef          hds::HDS<Items> Base;
     typedef typename Base::Node      Node;
     typedef typename Base::Halfedge  Halfedge;
     typedef typename Base::Edge      Edge;
@@ -63,7 +66,7 @@ public:
 
     typedef enum {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH} Point_location;
 
-    Node_handle add_node (Point2 const& p) {
+    Node_handle add_node (Point_2 const& p) {
         Node_handle n = this->get_new_node();
         n->position() = p;
         return n;
@@ -141,7 +144,7 @@ public:
         this->delete_face(f);
     }
 
-    Node_handle insert_in_edge(Point2 const& p, Edge_handle e) {
+    Node_handle insert_in_edge (Edge_handle e, Point_2 const& p) {
         Halfedge_handle h1, h2, h3, h4, h5, h6, h7, h8;
         Node_handle n1, n2, n3, n4;
         h1 = e->he1();
@@ -177,7 +180,7 @@ public:
         return n_new;
     }
 
-    Node_handle insert_in_face(Point2 const& p, Face_handle f) {
+    Node_handle insert_in_face (Face_handle f, Point_2 const& p) {
         Halfedge_handle h1 = f->halfedge();
         Halfedge_handle h2 = h1->next();
         Halfedge_handle h3 = h1->prev();
@@ -200,7 +203,15 @@ public:
         return bb;
     }
 
-    Face_handle locate(Point2 const& p, Point_location& loc, Node_handle& on_node, Edge_handle& on_edge, Face_handle start_face = Face_handle()) {
+    Halfedge_handle boundary_halfedge() {
+        for (Edge_iterator iter = this->edges_begin(); iter != this->edges_end(); ++iter) {
+            if (iter->he1()->is_boundary()) return iter->he1();
+            if (iter->he2()->is_boundary()) return iter->he2();
+        }
+        return Halfedge_handle();
+    }
+
+    Face_handle locate (Point_2 const& p, Point_location& loc, Node_handle& on_node, Edge_handle& on_edge, Face_handle start_face = Face_handle()) {
         Halfedge_handle he_start;
         if (start_face == Face_handle()) {
             he_start = this->faces_begin()->halfedge();
@@ -209,18 +220,18 @@ public:
         }
         Halfedge_handle he_iter = he_start;
         while (true) {
-            Point2 p1, p2;
+            Point_2 p1, p2;
             he_iter->vertices(p1, p2);
-            Oriented_side os = Exact_adaptive_kernel::oriented_side(p1, p2, p);
+            typename Kernel::Oriented_side os = Kernel::oriented_side(p1, p2, p);
             switch (os) {
-                case ON_POSITIVE_SIDE:
+                case Kernel::ON_POSITIVE_SIDE:
                     he_iter = he_iter->next();
                     if (he_iter == he_start) {
                         loc = IN_FACE;
                         return he_iter->face();
                     }
                     break;
-                case ON_ORIENTED_BOUNDARY:
+                case Kernel::ON_ORIENTED_BOUNDARY:
                     {
                         if ((std::min(p1.x(),p2.x()) < p.x() && p.x() < std::max(p1.x(),p2.x())) ||
                             (std::min(p1.y(),p2.y()) < p.y() && p.y() < std::max(p1.y(),p2.y())) )
@@ -238,10 +249,10 @@ public:
                             return Face_handle();
                         }
                     }
-                case ON_NEGATIVE_SIDE:
+                case Kernel::ON_NEGATIVE_SIDE:
                     if (he_iter->pair()->is_boundary()) {
                         loc = OUTSIDE_MESH;
-                        on_edge = he_iter;
+                        on_edge = he_iter->edge();
                         return Face_handle();
                     }
                     he_iter = he_iter->pair();
@@ -295,8 +306,7 @@ private:
         return Halfedge_handle();
     }
 
-    bool make_adjacent (Halfedge_handle in, Halfedge_handle out)
-    {
+    bool make_adjacent (Halfedge_handle in, Halfedge_handle out) {
         // halfedges are already adjacent
         if (in->next() == out) {
             return true;
@@ -322,8 +332,7 @@ private:
         return true;
     }
 
-    void detach_edge (Halfedge_handle he)
-    {
+    void detach_edge (Halfedge_handle he) {
         Node_handle n = he->origin();
         if (n->halfedge() == he) {
             if (he->pair()->next() != he) {
@@ -332,28 +341,26 @@ private:
                 n->set_halfedge(Halfedge_handle());
             }
         }
-
-        he->prev()->next() = he->pair()->next();
-        he->pair()->next()->prev() = he->prev();
+        he->prev()->set_next(he->pair()->next());
+        he->pair()->next()->set_prev(he->prev());
     }
-
 };
 
-template <typename Items>
-Postscript_ostream& operator<< ( Postscript_ostream& ps, Triangulation<Items> const& tria)
+template <typename Items, typename Kernel>
+Postscript_ostream& operator<< ( Postscript_ostream& ps, Triangulation<Items, Kernel> const& tria)
 {
-    typedef Triangulation<Items> T;
-    typedef typename Triangulation<Items>::Point2 Point2;
+    typedef Triangulation<Items,Kernel> T;
+    typedef typename Triangulation<Items,Kernel>::Point_2 Point_2;
     
-    Point2 p1, p2, p3;
+    Point_2 p1, p2, p3;
 
     ps.setgray(0.8);
     for (typename T::Face_const_iterator iter = tria.faces_begin(); iter != tria.faces_end(); ++iter) {
         iter->vertices(p1, p2, p3);
         ps.newpath();
-        ps.moveto(p1);
-        ps.lineto(p2);
-        ps.lineto(p3);
+        ps.moveto(p1.x(),p1.y());
+        ps.lineto(p2.x(),p2.y());
+        ps.lineto(p3.x(),p3.y());
         ps.fill();
     }
 
@@ -361,8 +368,8 @@ Postscript_ostream& operator<< ( Postscript_ostream& ps, Triangulation<Items> co
     ps.newpath();
     for (typename T::Edge_const_iterator iter = tria.edges_begin(); iter != tria.edges_end(); ++iter) {
         iter->vertices(p1, p2);
-        ps.moveto(p1);
-        ps.lineto(p2);
+        ps.moveto(p1.x(),p1.y());
+        ps.lineto(p2.x(),p2.y());
     }
     ps.stroke();
 
@@ -373,7 +380,7 @@ Postscript_ostream& operator<< ( Postscript_ostream& ps, Triangulation<Items> co
             ps.setrgbcolor(1,1,0);
         }
         ps.newpath();
-        ps.dot(iter->position());
+        ps.dot(iter->position().x(),iter->position().y());
         ps.fill();
     }
 

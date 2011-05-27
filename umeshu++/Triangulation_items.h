@@ -22,8 +22,6 @@
 #ifndef __TRIANGULATION_ITEMS_H_INCLUDED__
 #define __TRIANGULATION_ITEMS_H_INCLUDED__ 
 
-#include "Point2.h"
-#include "Exact_adaptive_kernel.h"
 #include "HDS/HDS_node_base.h"
 #include "HDS/HDS_halfedge_base.h"
 #include "HDS/HDS_edge_base.h"
@@ -31,9 +29,10 @@
 
 namespace umeshu {
 
-template <typename HDS, typename Point2>
+template <typename Kernel, typename HDS>
 class Triangulation_node_base : public hds::HDS_node_base<HDS> {
 public:
+    typedef typename Kernel::Point_2             Point_2;
     typedef          hds::HDS_node_base<HDS>     Base;
     typedef typename Base::Node_handle           Node_handle;
     typedef typename Base::Node_const_handle     Node_const_handle;
@@ -45,10 +44,10 @@ public:
     typedef typename Base::Face_const_handle     Face_const_handle;
 
     Triangulation_node_base() : Base(), position_() {}
-    explicit Triangulation_node_base(Point2 const& p) : Base(), position_(p) {}
+    explicit Triangulation_node_base(Point_2 const& p) : Base(), position_(p) {}
     
-    Point2&       position()       { return position_; }
-    Point2 const& position() const { return position_; }
+    Point_2&       position()       { return position_; }
+    Point_2 const& position() const { return position_; }
 
     int degree() const {
         int d = 0;
@@ -68,12 +67,13 @@ public:
     }
 
 private:
-    Point2 position_;
+    Point_2 position_;
 };
 
-template <typename HDS, typename Point2>
+template <typename Kernel, typename HDS>
 class Triangulation_halfedge_base : public hds::HDS_halfedge_base<HDS> {
 public:
+    typedef typename Kernel::Point_2             Point_2;
     typedef          hds::HDS_halfedge_base<HDS> Base;
     typedef typename Base::Node_handle           Node_handle;
     typedef typename Base::Node_const_handle     Node_const_handle;
@@ -86,15 +86,16 @@ public:
 
     Triangulation_halfedge_base() : Base() {}
 
-    void vertices(Point2& p1, Point2& p2) const {
+    void vertices(Point_2& p1, Point_2& p2) const {
         p1 = this->origin()->position();
         p2 = this->pair()->origin()->position();
     }
 };
 
-template <typename HDS, typename Point2>
+template <typename Kernel, typename HDS>
 class Triangulation_edge_base : public hds::HDS_edge_base<HDS> {
 public:
+    typedef typename Kernel::Point_2             Point_2;
     typedef          hds::HDS_edge_base<HDS>     Base;
     typedef typename Base::Node_handle           Node_handle;
     typedef typename Base::Node_const_handle     Node_const_handle;
@@ -109,23 +110,29 @@ public:
         : Base(g, h)
     {}
 
-    void vertices(Point2& p1, Point2& p2) const {
+    void vertices(Point_2& p1, Point_2& p2) const {
         this->he1()->vertices(p1, p2);
+    }
+
+    double length() const {
+        Point_2 p1, p2;
+        vertices(p1, p2);
+        return Kernel::distance(p1, p2); 
     }
 
     bool is_flippable() const {
         if (this->is_boundary()) {
             return false;
         }
-        Point2 p1 = this->he1()->origin()->position();
-        Point2 p2 = this->he2()->prev()->origin()->position();
-        Point2 p3 = this->he2()->origin()->position();
-        Point2 p4 = this->he1()->prev()->origin()->position();
+        Point_2 p1 = this->he1()->origin()->position();
+        Point_2 p2 = this->he2()->prev()->origin()->position();
+        Point_2 p3 = this->he2()->origin()->position();
+        Point_2 p4 = this->he1()->prev()->origin()->position();
 
-        if (Exact_adaptive_kernel::oriented_side(p1, p2, p3) != ON_POSITIVE_SIDE ||
-            Exact_adaptive_kernel::oriented_side(p2, p3, p4) != ON_POSITIVE_SIDE ||
-            Exact_adaptive_kernel::oriented_side(p3, p4, p1) != ON_POSITIVE_SIDE ||
-            Exact_adaptive_kernel::oriented_side(p4, p1, p2) != ON_POSITIVE_SIDE)
+        if (Kernel::oriented_side(p1, p2, p3) != Kernel::ON_POSITIVE_SIDE ||
+            Kernel::oriented_side(p2, p3, p4) != Kernel::ON_POSITIVE_SIDE ||
+            Kernel::oriented_side(p3, p4, p1) != Kernel::ON_POSITIVE_SIDE ||
+            Kernel::oriented_side(p4, p1, p2) != Kernel::ON_POSITIVE_SIDE)
         {
             return false;
         }
@@ -165,9 +172,10 @@ public:
     }
 };
 
-template <typename HDS, typename Point2>
+template <typename Kernel, typename HDS>
 class Triangulation_face_base : public hds::HDS_face_base<HDS> {
 public:
+    typedef typename Kernel::Point_2             Point_2;
     typedef          hds::HDS_face_base<HDS>     Base;
     typedef typename Base::Node_handle           Node_handle;
     typedef typename Base::Node_const_handle     Node_const_handle;
@@ -198,7 +206,7 @@ public:
         n3 = this->halfedge()->prev()->origin();
     }
 
-    void vertices(Point2& p1, Point2& p2, Point2& p3) const {
+    void vertices(Point_2& p1, Point_2& p2, Point_2& p3) const {
         BOOST_ASSERT(is_triangle());
         Node_const_handle n1, n2, n3;
         nodes(n1, n2, n3);
@@ -207,33 +215,30 @@ public:
         p3 = n3->position();
     }
 
-    Point2 circumcenter() const {
-        Point2 p1, p2, p3;
+    Point_2 circumcenter() const {
+        Point_2 p1, p2, p3;
         this->vertices(p1, p2, p3);
-        return Exact_adaptive_kernel::circumcenter(p1, p2, p3);    
+        return Kernel::circumcenter(p1, p2, p3);    
     }
 
 };
 
-template <typename Point_>
 struct Triangulation_items {
-    typedef Point_ Point2;
-
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Node_wrapper {
-        typedef Triangulation_node_base<HDS, Point_> Node;
+        typedef Triangulation_node_base<Kernel, HDS> Node;
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Halfedge_wrapper {
-        typedef Triangulation_halfedge_base<HDS, Point_> Halfedge;  
+        typedef Triangulation_halfedge_base<Kernel, HDS> Halfedge;  
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Edge_wrapper {
-        typedef Triangulation_edge_base<HDS, Point_> Edge;
+        typedef Triangulation_edge_base<Kernel, HDS> Edge;
     };
-    template <typename HDS>
+    template <typename Kernel, typename HDS>
     struct Face_wrapper {
-        typedef Triangulation_face_base<HDS, Point_> Face;  
+        typedef Triangulation_face_base<Kernel, HDS> Face;  
     };
 };
 

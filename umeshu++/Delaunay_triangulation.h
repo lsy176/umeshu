@@ -22,18 +22,19 @@
 #ifndef __DELAUNAY_TRIANGULATION_H_INCLUDED__
 #define __DELAUNAY_TRIANGULATION_H_INCLUDED__ 
 
+#include "Exact_adaptive_kernel.h"
 #include "Triangulation.h"
 
 #include <boost/unordered/unordered_set.hpp>
 
 namespace umeshu {
 
-template <typename Delaunay_triangulation_items>
-class Delaunay_triangulation : public Triangulation<Delaunay_triangulation_items> {
+template <typename Delaunay_triangulation_items, typename Kernel_ = Exact_adaptive_kernel, typename Alloc = std::allocator<int> >
+class Delaunay_triangulation : public Triangulation<Delaunay_triangulation_items, Kernel_, Alloc> {
 public:
-    typedef          Delaunay_triangulation_items Items;
-    typedef typename Items::Point2   Point2;
-    typedef          Triangulation<Items> Base;
+    typedef          Triangulation<Delaunay_triangulation_items, Kernel_, Alloc> Base;
+    typedef          Kernel_         Kernel;
+    typedef typename Kernel::Point_2 Point_2;
 
     typedef typename Base::Node      Node;
     typedef typename Base::Halfedge  Halfedge;

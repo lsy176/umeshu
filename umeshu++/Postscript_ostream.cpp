@@ -19,9 +19,6 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#include "Edge.h"
-#include "Face.h"
-#include "Node.h"
 #include "Postscript_ostream.h"
 
 #include <cmath>

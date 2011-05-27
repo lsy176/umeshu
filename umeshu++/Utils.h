@@ -19,48 +19,25 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 //  IN THE SOFTWARE.
 
-#include "Point2.h"
+#ifndef __UTILS_H_INCLUDED__
+#define __UTILS_H_INCLUDED__ 
 
-#include <cmath>
-#include <limits>
+#include <boost/math/constants/constants.hpp>
 
 namespace umeshu {
+namespace utils {
 
-std::ostream& operator<<(std::ostream& os, Point2 const& p)
+inline double degrees_to_radians(double angle)
 {
-    os.precision(std::numeric_limits<double>::digits10);
-    os << "[" << std::fixed << p.x() << "," << p.y() << "]";
-    return os;
+    return angle*boost::math::constants::pi<double>()/180.0;
 }
 
-double circumradius (Point2 const& p1, Point2 const& p2, Point2 const& p3)
+inline double radians_to_degrees(double angle)
 {
-    double a = distance(p1, p2);
-    double b = distance(p2, p3);
-    double c = distance(p3, p1);
-    double s = 0.5*(a+b+c);
-    return 0.25*a*b*c/(std::sqrt(s*(s-a)*(s-b)*(s-c)));
+    return angle/boost::math::constants::pi<double>()*180.0;
 }
 
-void triangle_angles (Point2 const& p1, Point2 const& p2, Point2 const& p3, double& a1, double& a2, double& a3)
-{
-    double a, b, c;
-    a = distance(p2, p3);
-    b = distance(p1, p3);
-    c = distance(p1, p2);
-    double aa = a*a;
-    double bb = b*b;
-    double cc = c*c;
-    
-    a1 = std::acos((bb+cc-aa)/(2.0*b*c));
-    a2 = std::acos((aa+cc-bb)/(2.0*a*c));
-    a3 = std::acos((aa+bb-cc)/(2.0*a*b));
-}
-
-Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3)
-{
-    const double one_third = boost::math::constants::third<double>();
-    return Point2(one_third*(p1.x()+p2.x()+p3.x()),one_third*(p1.y()+p2.y()+p3.y()));
-}
-
+} // namespace utils
 } // namespace umeshu
+
+#endif /* __UTILS_H_INCLUDED__ */

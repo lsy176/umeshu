@@ -20,28 +20,26 @@
 //  IN THE SOFTWARE.
 
 // #include "BoundarySegment.h"
-// #include "Mesher.h"
 // #include "Relaxer.h"
 // #include "Smoother.h"
 
 #include "Bounding_box.h"
+#include "Delaunay_mesher.h"
 #include "Delaunay_triangulation_items.h"
 #include "Delaunay_triangulation.h"
 #include "Exceptions.h"
-#include "Point2.h"
 #include "Polygon.h"
 #include "Postscript_ostream.h"
 #include "Triangulator.h"
 
 using namespace umeshu;
 
-typedef Delaunay_triangulation<Delaunay_triangulation_items<Point2> > Mesh;
+typedef Delaunay_triangulation<Delaunay_triangulation_items> Mesh;
 typedef Mesh::Node_handle     Node_handle;
 typedef Mesh::Halfedge_handle Halfedge_handle;
 typedef Mesh::Edge_handle     Edge_handle;
 typedef Mesh::Face_handle     Face_handle;
-
-// typedef Mesher<mesh> mesher;
+typedef Delaunay_mesher<Mesh> Mesher;
 // typedef Relaxer<mesh> relaxer;
 // typedef Smoother<mesh> smoother;
 
@@ -52,24 +50,24 @@ int main (int argc, const char * argv[])
         Triangulator<Mesh> triangulator;
         // Polygon boundary = Polygon::letter_u();
         // Polygon boundary = Polygon::crack();
-        // Polygon boundary = Polygon::kidney();
+        Polygon boundary = Polygon::kidney();
         // Polygon boundary = Polygon::letter_a();
-        Polygon boundary = Polygon::island();
         // Polygon boundary = Polygon::square(1.0);
+        // Polygon boundary = Polygon::island();
+        // Polygon boundary = Polygon::triangle();
+        
         triangulator.triangulate(boundary, mesh);
-        mesh.make_cdt();
-
         Postscript_ostream ps1("mesh_1.eps", mesh.bounding_box());
         ps1 << mesh;
 
-        // mesher meshgen(m);
-        // meshgen.make_cdt();
-        // Postscript_stream ps2("mesh_2.eps", m.bounding_box());
-        // ps2 << m;
+        mesh.make_cdt();
+        Postscript_ostream ps2("mesh_2.eps", mesh.bounding_box());
+        ps2 << mesh;
 
-        // meshgen.refine(0.001, 25);
-        // Postscript_stream ps3("mesh_3.eps", m.bounding_box());
-        // ps3 << m;
+        Mesher mesher;
+        mesher.refine(mesh, 0.001, 25.0);
+        Postscript_ostream ps3("mesh_3.eps", mesh.bounding_box());
+        ps3 << mesh;
 
         // relaxer relax;
         // relax.relax(m);

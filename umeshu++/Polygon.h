@@ -31,6 +31,7 @@ public:
     static Polygon kidney();
     static Polygon crack();
     static Polygon coastline();
+    static Polygon triangle();
 
 private:
     std::vector<Point2> vertices_;

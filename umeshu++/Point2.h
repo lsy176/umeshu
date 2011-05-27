@@ -22,14 +22,11 @@
 #ifndef __POINT_H_INCLUDED__
 #define __POINT_H_INCLUDED__
 
-#include <boost/math/constants/constants.hpp>
 #include <boost/operators.hpp>
 
 #include <ostream>
 
 namespace umeshu {
-
-typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
 
 class Point2
     : boost::additive< Point2
@@ -65,38 +62,12 @@ inline bool operator== (Point2 const& p1, Point2 const& p2)
     return p1.x() == p2.x() && p1.y() == p2.y();
 }
 
-inline double distance_squared (Point2 const& p1, Point2 const& p2)
+inline std::ostream& operator<<(std::ostream& os, Point2 const& p)
 {
-    double x = p1.x() - p2.x();
-    double y = p1.y() - p2.y();
-    return x*x + y*y;
+    os.precision(std::numeric_limits<double>::digits10);
+    os << "[" << std::fixed << p.x() << "," << p.y() << "]";
+    return os;
 }
-
-inline double distance (Point2 const& p1, Point2 const& p2)
-{
-    return std::sqrt(distance_squared(p1, p2));
-}
-
-inline double degrees_to_radians(double angle)
-{
-    return angle*boost::math::constants::pi<double>()/180.0;
-}
-
-inline double radians_to_degrees(double angle)
-{
-    return angle/boost::math::constants::pi<double>()*180.0;
-}
-
-inline Point2 midpoint (Point2 const& p1, Point2 const& p2)
-{
-    return Point2(0.5*(p1.x()+p2.x()), 0.5*(p1.y()+p2.y()));
-}
-
-double circumradius (Point2 const& p1, Point2 const& p2, Point2 const& p3);
-void triangle_angles (Point2 const& p1, Point2 const& p2, Point2 const& p3, double& a1, double& a2, double& a3);
-// double triangle_area (Point2 const& p1, Point2 const& p2, Point2 const& p3);
-Point2 barycenter (Point2 const& p1, Point2 const& p2, Point2 const& p3);
-Point2 midpoint (Point2 const& p1, Point2 const& p2);
 
 } // namespace umeshu
 

@@ -29,7 +29,7 @@ using namespace umeshu::hds;
 
 BOOST_AUTO_TEST_CASE(construction_and_access)
 {
-    HDS<HDS_items> hds;
+    HDS<HDS_items,int> hds;
 }
 
 

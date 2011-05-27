@@ -32,6 +32,15 @@ Bounding_box Polygon::bounding_box() const
     return bb;
 }
 
+Polygon Polygon::triangle()
+{
+    Polygon poly;
+    poly.append_vertex(Point2(-5.0,0.0));
+    poly.append_vertex(Point2(5.0,0.0));
+    poly.append_vertex(Point2(-0.5,2.0));
+    return poly;
+}
+
 Polygon Polygon::island()
 {
     Polygon poly;

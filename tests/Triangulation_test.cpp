@@ -23,13 +23,13 @@
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 
+#include "Postscript_ostream.h"
 #include "Triangulation_items.h"
 #include "Triangulation.h"
-#include "Point2.h"
 
 using namespace umeshu;
 
-typedef Triangulation<Triangulation_items<Point2> > Tria;
+typedef Triangulation<Triangulation_items> Tria;
 typedef Tria::Node_handle             Node_handle;
 typedef Tria::Halfedge_handle         Halfedge_handle;
 typedef Tria::Edge_handle             Edge_handle;
@@ -108,4 +108,38 @@ BOOST_AUTO_TEST_CASE(construction_and_access)
     BOOST_CHECK(tria.number_of_halfedges() == 2);
     BOOST_CHECK(tria.number_of_edges() == 1);
     BOOST_CHECK(tria.number_of_faces() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(insertion_in_edge)
+{
+    Tria tria;
+    Node_handle n1 = tria.add_node(Point2(0.0, 0.0));
+    Node_handle n2 = tria.add_node(Point2(1.0, 0.0));
+    Node_handle n3 = tria.add_node(Point2(1.0, 1.0));
+    Node_handle n4 = tria.add_node(Point2(0.0, 1.0));
+    Halfedge_handle h1 = tria.add_edge(n1, n2);
+    Halfedge_handle h2 = tria.add_edge(n2, n3);
+    Halfedge_handle h3 = tria.add_edge(n3, n4);
+    Halfedge_handle h4 = tria.add_edge(n4, n1);
+    Halfedge_handle h5 = tria.add_edge(n3, n1);
+    tria.add_face(h1, h2, h5);
+    tria.add_face(h3, h4, h5->pair());
+    BOOST_CHECK(tria.number_of_nodes() == 4);
+    BOOST_CHECK(tria.number_of_halfedges() == 10);
+    BOOST_CHECK(tria.number_of_edges() == 5);
+    BOOST_CHECK(tria.number_of_faces() == 2);
+
+    {
+        Postscript_ostream ps("insert_in_edge_1.eps", tria.bounding_box());
+        ps << tria;
+    }
+    tria.insert_in_edge(h5->edge(), Point2(0.5,0.5));
+    BOOST_CHECK(tria.number_of_nodes() == 5);
+    BOOST_CHECK(tria.number_of_halfedges() == 16);
+    BOOST_CHECK(tria.number_of_edges() == 8);
+    BOOST_CHECK(tria.number_of_faces() == 4);
+    {
+        Postscript_ostream ps("insert_in_edge_2.eps", tria.bounding_box());
+        ps << tria;
+    }
 }

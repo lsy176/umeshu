@@ -23,7 +23,6 @@
 #define __POSTSCRIPT_STREAM_H_INCLUDED__
 
 #include "Bounding_box.h"
-#include "Point2.h"
 
 #include <fstream>
 #include <string>
@@ -40,13 +39,15 @@ public:
     void closepath() {
         of_ << "cp\n";
     }
-    void moveto(Point2 const& p) {
-        Point2 tp = transform(p);
-        of_ << tp.x() << " " << tp.y() << " m\n";
+    void moveto(double x, double y) {
+        double nx, ny;
+        transform(x, y, nx, ny);
+        of_ << nx << " " << ny << " m\n";
     }
-    void lineto(Point2 const& p) {
-        Point2 tp = transform(p);
-        of_ << tp.x() << " " << tp.y() << " l\n";
+    void lineto(double x, double y) {
+        double nx, ny;
+        transform(x, y, nx, ny);
+        of_ << nx << " " << ny << " l\n";
     }
     void stroke() {
         of_ << "s\n";
@@ -54,9 +55,10 @@ public:
     void fill() {
         of_ << "f\n";
     }
-    void dot(Point2 const& p) {
-        Point2 tp = transform(p);
-        of_ << tp.x() << " " << tp.y() << " c\n";
+    void dot(double x, double y) {
+        double nx, ny;
+        transform(x, y, nx, ny);
+        of_ << nx << " " << ny << " c\n";
     }
     void setrgbcolor(double r, double g, double b) {
         of_ << r << " " << g << " " << b << " sc\n";
@@ -66,11 +68,9 @@ public:
     }
 
 private:
-    Point2 transform(Point2 const& p) {
-        Point2 tp;
-        tp.x() = x_scale*p.x() - x_trans;
-        tp.y() = y_scale*p.y() - y_trans;
-        return tp;
+    void transform(double x, double y, double& nx, double& ny) {
+        nx = x_scale*x - x_trans;
+        ny = y_scale*y - y_trans;
     }
 
     std::ofstream of_;
