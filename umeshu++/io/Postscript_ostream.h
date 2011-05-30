@@ -28,6 +28,7 @@
 #include <string>
 
 namespace umeshu {
+namespace io {
 
 class Postscript_ostream {    
 public:
@@ -84,6 +85,7 @@ private:
     static float const default_line_width;
 };
 
+} // namespace io
 } // namespace umeshu
 
 #endif // __POSTSCRIPT_STREAM_H_INCLUDED__

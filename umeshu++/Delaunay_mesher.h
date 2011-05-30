@@ -22,6 +22,7 @@
 #ifndef __DELAUNAY_MESHER_H_INCLUDED__
 #define __DELAUNAY_MESHER_H_INCLUDED__ 
 
+#include "Triangulation.h"
 #include "Utils.h"
 
 #include <boost/unordered/unordered_set.hpp>
@@ -59,8 +60,6 @@ public:
     double min_angle() const { return min_angle_; }
 
     bool operator< (Self const& q) const {
-            // if (area() > q.area()) return true;
-            // return false;
         if (q.face() != face()) {
             if (area() > q.area()) {
                 return true;
@@ -151,15 +150,15 @@ public:
             Node_handle n1, n2, n3;
             bad_face->nodes(n1, n2, n3);
 
-            typename Tria::Point_location loc;
+            Point_location loc;
             Face_handle face_to_kill;
             Edge_handle edge_to_kill;
             Node_handle node_to_kill;
             face_to_kill = mesh_->locate(center, loc, node_to_kill, edge_to_kill, bad_face);
-            BOOST_ASSERT(loc != Tria::ON_NODE);
+            BOOST_ASSERT(loc != ON_NODE);
 
             std::stack<Halfedge_handle> E;
-            if (loc == Tria::IN_FACE) {
+            if (loc == IN_FACE) {
                 Node_handle new_node = try_kill_face(face_to_kill, center, E);
                 if (E.empty()) {
                     clear_undo_stack();
@@ -170,7 +169,7 @@ public:
                     BOOST_ASSERT(bad_face != Face_handle());
                     finish_dealing_with_bad_face(bad_face, E);
                 }
-            } else if (loc == Tria::ON_EDGE) {
+            } else if (loc == ON_EDGE) {
                 bool build_123 = not edge_to_kill->he1()->is_boundary();
                 bool build_142 = not edge_to_kill->he2()->is_boundary();
                 Node_handle n1_ = edge_to_kill->he1()->origin();
@@ -185,7 +184,7 @@ public:
                     BOOST_ASSERT(bad_face != Face_handle());
                     finish_dealing_with_bad_face(bad_face, E);
                 }
-            } else { // loc == Tria::OUTSIDE_MESH:
+            } else { // loc == OUTSIDE_MESH:
                 Edge_handle e = edge_to_kill;
                 BOOST_ASSERT(e->is_boundary());
                 if (e->he1()->is_boundary()) {

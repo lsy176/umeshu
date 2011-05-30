@@ -23,7 +23,7 @@
 #include <boost/test/unit_test.hpp>
 #include <cmath>
 
-#include "Postscript_ostream.h"
+#include "io/Postscript_ostream.h"
 #include "Triangulation_items.h"
 #include "Triangulation.h"
 
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(insertion_in_edge)
     BOOST_CHECK(tria.number_of_faces() == 2);
 
     {
-        Postscript_ostream ps("insert_in_edge_1.eps", tria.bounding_box());
+        io::Postscript_ostream ps("insert_in_edge_1.eps", tria.bounding_box());
         ps << tria;
     }
     tria.insert_in_edge(h5->edge(), Point2(0.5,0.5));
@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(insertion_in_edge)
     BOOST_CHECK(tria.number_of_edges() == 8);
     BOOST_CHECK(tria.number_of_faces() == 4);
     {
-        Postscript_ostream ps("insert_in_edge_2.eps", tria.bounding_box());
+        io::Postscript_ostream ps("insert_in_edge_2.eps", tria.bounding_box());
         ps << tria;
     }
 }

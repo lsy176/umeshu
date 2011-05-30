@@ -53,8 +53,8 @@ set( umeshu_SOURCES
     umeshu++/Exact_adaptive_kernel.cpp
     umeshu++/Exact_adaptive_kernel_init.cpp
     umeshu++/Polygon.cpp
-    umeshu++/Postscript_ostream.cpp
     umeshu++/Predicates.cpp
+    umeshu++/io/Postscript_ostream.cpp
     )
 
 add_library(umeshu ${umeshu_SOURCES})

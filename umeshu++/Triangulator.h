@@ -24,7 +24,6 @@
 
 #include "Exceptions.h"
 #include "Polygon.h"
-#include "Postscript_ostream.h"
 
 #include <boost/foreach.hpp>
 

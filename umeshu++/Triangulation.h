@@ -23,15 +23,17 @@
 #define __TRIANGULATION_H_INCLUDED__ 
 
 #include "HDS/HDS.h"
+#include "io/Postscript_ostream.h"
 #include "Bounding_box.h"
 #include "Exact_adaptive_kernel.h"
-#include "Postscript_ostream.h"
 
 #include <boost/assert.hpp>
 
 #include <iostream>
 
 namespace umeshu {
+
+enum Point_location {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH};
 
 template <typename Triangulation_items, typename Kernel_ = Exact_adaptive_kernel, typename Alloc = std::allocator<int> >
 class Triangulation : public hds::HDS<Triangulation_items, Kernel_, Alloc> {
@@ -63,8 +65,6 @@ public:
     typedef typename Base::Halfedge_const_handle Halfedge_const_handle;
     typedef typename Base::Edge_const_handle     Edge_const_handle;
     typedef typename Base::Face_const_handle     Face_const_handle;
-
-    typedef enum {IN_FACE, ON_EDGE, ON_NODE, OUTSIDE_MESH} Point_location;
 
     Node_handle add_node (Point_2 const& p) {
         Node_handle n = this->get_new_node();
@@ -347,7 +347,7 @@ private:
 };
 
 template <typename Items, typename Kernel>
-Postscript_ostream& operator<< ( Postscript_ostream& ps, Triangulation<Items, Kernel> const& tria)
+io::Postscript_ostream& operator<< (io::Postscript_ostream& ps, Triangulation<Items, Kernel> const& tria)
 {
     typedef Triangulation<Items,Kernel> T;
     typedef typename Triangulation<Items,Kernel>::Point_2 Point_2;

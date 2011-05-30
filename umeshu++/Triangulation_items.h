@@ -62,8 +62,39 @@ public:
         return d;
     }
 
+    Halfedge_const_handle boundary_halfedge() const {
+        Halfedge_const_handle bhe_start = this->halfedge();
+        if (bhe_start == Halfedge_const_handle()) {
+            return bhe_start;
+        }
+        Halfedge_const_handle bhe_iter = bhe_start;
+        do {
+            if (bhe_iter->is_boundary()) {
+                return bhe_iter;
+            }
+            bhe_iter = bhe_iter->pair()->next();
+        } while (bhe_iter != bhe_start);
+        return Halfedge_const_handle();
+    }
+
+    Halfedge_handle boundary_halfedge() {
+        Halfedge_handle bhe_start = this->halfedge();
+        if (bhe_start == Halfedge_handle()) {
+            return bhe_start;
+        }
+        Halfedge_handle bhe_iter = bhe_start;
+        do {
+            if (bhe_iter->is_boundary()) {
+                return bhe_iter;
+            }
+            bhe_iter = bhe_iter->pair()->next();
+        } while (bhe_iter != bhe_start);
+        return Halfedge_handle();
+    }
+
     bool is_boundary() const {
-        return this->halfedge()->is_boundary() || this->halfedge()->pair()->is_boundary();
+        return boundary_halfedge() != Halfedge_const_handle();
+        // return this->halfedge()->is_boundary() || this->halfedge()->pair()->is_boundary();
     }
 
 private:

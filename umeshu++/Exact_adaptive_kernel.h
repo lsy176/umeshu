@@ -35,7 +35,7 @@ class Exact_adaptive_kernel {
     public:
         typedef Point2 Point_2;
 
-        typedef enum {ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY, ON_POSITIVE_SIDE} Oriented_side;
+        typedef enum {ON_POSITIVE_SIDE, ON_NEGATIVE_SIDE, ON_ORIENTED_BOUNDARY} Oriented_side;
 
         static Oriented_side oriented_side   (Point_2 const& pa, Point_2 const& pb, Point_2 const& test);
         static Oriented_side oriented_circle (Point_2 const& pa, Point_2 const& pb, Point_2 const& pc, Point_2 const& test);

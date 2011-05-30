@@ -20,17 +20,17 @@
 //  IN THE SOFTWARE.
 
 // #include "BoundarySegment.h"
-// #include "Relaxer.h"
 // #include "Smoother.h"
 
 #include "Bounding_box.h"
 #include "Delaunay_mesher.h"
-#include "Delaunay_triangulation_items.h"
 #include "Delaunay_triangulation.h"
+#include "Delaunay_triangulation_items.h"
 #include "Exceptions.h"
 #include "Polygon.h"
-#include "Postscript_ostream.h"
+#include "Relaxer.h"
 #include "Triangulator.h"
+#include "io/Postscript_ostream.h"
 
 using namespace umeshu;
 
@@ -40,7 +40,7 @@ typedef Mesh::Halfedge_handle Halfedge_handle;
 typedef Mesh::Edge_handle     Edge_handle;
 typedef Mesh::Face_handle     Face_handle;
 typedef Delaunay_mesher<Mesh> Mesher;
-// typedef Relaxer<mesh> relaxer;
+typedef Relaxer<Mesh>         Relax;
 // typedef Smoother<mesh> smoother;
 
 int main (int argc, const char * argv[])
@@ -57,22 +57,22 @@ int main (int argc, const char * argv[])
         // Polygon boundary = Polygon::triangle();
         
         triangulator.triangulate(boundary, mesh);
-        Postscript_ostream ps1("mesh_1.eps", mesh.bounding_box());
+        io::Postscript_ostream ps1("mesh_1.eps", mesh.bounding_box());
         ps1 << mesh;
 
         mesh.make_cdt();
-        Postscript_ostream ps2("mesh_2.eps", mesh.bounding_box());
+        io::Postscript_ostream ps2("mesh_2.eps", mesh.bounding_box());
         ps2 << mesh;
 
         Mesher mesher;
-        mesher.refine(mesh, 0.001, 25.0);
-        Postscript_ostream ps3("mesh_3.eps", mesh.bounding_box());
+        mesher.refine(mesh, 0.001, 21.0);
+        io::Postscript_ostream ps3("mesh_3.eps", mesh.bounding_box());
         ps3 << mesh;
 
-        // relaxer relax;
-        // relax.relax(m);
-        // Postscript_stream ps4("mesh_4.eps", m.bounding_box());
-        // ps4 << m;
+        Relax relax;
+        relax.relax(mesh);
+        io::Postscript_ostream ps4("mesh_4.eps", mesh.bounding_box());
+        ps4 << mesh;
 
         // smoother smooth;
         // smooth.smooth(m, 1);

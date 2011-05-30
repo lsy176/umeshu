@@ -24,6 +24,7 @@
 #include <cmath>
 
 namespace umeshu {
+namespace io {
 
 /* 1cm is this amount of PostScript points */
 const float cm = 28.3464567;
@@ -70,4 +71,6 @@ Postscript_ostream::Postscript_ostream (std::string const& filename, Bounding_bo
     of_ << "/sc {setrgbcolor} def\n";
 }
 
+} // namespace io
 } // namespace umeshu
+
